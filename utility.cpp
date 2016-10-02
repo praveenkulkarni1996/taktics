@@ -1,5 +1,7 @@
 #include "utility.h"
 #include <cassert>
+#include <iostream>
+using namespace std;
 
 bool out_of_bounds(const int x, const int y, const int N) {
     return not(0 <= x and x < N and 0 <= y and y < N);
@@ -32,4 +34,16 @@ string make_sqr(int x, int y, int N) {
     s += ('a' + x);
     s += ('1' + y);
     return s;
+}
+
+pair<int, int> make_xy(char x, char y) {
+    return make_pair(x-'a', y-'1');
+}
+
+void print_moves(Moves moves) {
+    cout << "[";
+    for(Move &move : moves) {
+        cout << move << ", ";
+    }
+    cout << "]";
 }
