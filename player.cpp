@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cassert>
+#include "utility.h"
 using namespace std;
 
 const int N = 5;
@@ -99,23 +100,9 @@ public:
 void generate_moves(Board &board, bool white);
 void generate_placement_moves(Board &board, Moves &moves, bool white);
 void generate_motion_moves(Board &board, Moves &moves, bool white);
-string make_sqr(int x, int y);
 void motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht);
 void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht);
 
-inline string make_sqr(int x, int y) {
-    assert(0 <= x && x < N);
-    assert(0 <= y && y < N);
-    string s;
-    s += ('a' + x);
-    s += ('1' + y);
-    return s;
-}
-
-
-inline bool out_of_bounds(int x, int y) {
-    return not(0 <= x and x < N and 0 <= y and y < N);
-}
 
 void generate_moves(Board &board, bool white) {
     /* generates a list of moves for either player 
@@ -152,25 +139,6 @@ void generate_placement_moves(Board &board, Moves &moves, bool white) {
     }
 }
 
-inline int next_x(int x, char dir) {
-    switch(dir) {
-        case '<': return (x-1);
-        case '>': return (x+1);
-        case '+':
-        case '-': return x;
-        default: assert(false);
-    }
-}
-
-inline int next_y(int y, char dir) {
-    switch(dir) {
-        case '-': return (y-1);
-        case '+': return (y+1);
-        case '<':
-        case '>': return y;
-        default: assert(false);
-    }
-}
 void generate_motion_moves(Board &board, Moves &moves, bool white) {
     /* generate the moves for moving stacks for either player */
     const string dirs = "+-<>";
