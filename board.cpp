@@ -59,7 +59,7 @@ bool Board::perform_placement(Move move, bool white) {
     const pair<int, int> xy = make_xy(move[1], move[2]);
     const int x = xy.first;
     const int y = xy.second;
-    cout << "x = " << x << " y = " << y << "\n";
+    // cout << "x = " << x << " y = " << y << "\n";
     if(white) {
         switch(move[0]) {
             case 'F': board[x][y].push_back(WHITE_FLAT); black_flats_rem--; break;
@@ -91,7 +91,7 @@ bool Board::perform_motion(Move move, bool white) {
     assert(this->white(x, y) == white);
 
     const char dir = move[3];
-    cout << "x = " << x << " y = " << y << "\n";
+    // cout << "x = " << x << " y = " << y << "\n";
     vector<Stones> pickup;
     vector<int> drops;
     assert((int)board[x][y].size() >= h);
@@ -112,7 +112,7 @@ bool Board::perform_motion(Move move, bool white) {
             if(board[x][y].empty() == false) {
                 if(board[x][y].back() == WHITE_WALL or board[x][y].back() == BLACK_WALL) {
                     crush = true;
-                    cerr << "crushed at " << x << ", " << y << "\n";
+                    // cerr << "crushed at " << x << ", " << y << "\n";
                     assert(stone == WHITE_CAP or stone == BLACK_CAP);
                     board[x][y].back() = (board[x][y].back() == WHITE_WALL)
                                         ? WHITE_CRUSH : BLACK_CRUSH;
@@ -164,7 +164,7 @@ void Board::undo_motion(Move move, bool white, bool uncrush) {
     if(uncrush == true) {
         assert(board[x][y].back() == BLACK_CRUSH or board[x][y].back() == WHITE_CRUSH);
         assert(board[x0][y0].back() == BLACK_CAP or board[x0][y0].back() == WHITE_CAP);
-        cerr << "uncrushed at x = " << x << ", y = " << y << "\n";
+        // cerr << "uncrushed at x = " << x << ", y = " << y << "\n";
         board[x][y].back() = (board[x][y].back() == BLACK_CRUSH) ? BLACK_WALL : WHITE_WALL;
     }
     assert(this->white(x0, y0) == white);

@@ -37,6 +37,10 @@ public:
         assert(0 <= y and y < N);
         return board[x][y].empty();
     }
+    bool game_over() const {
+        // TODO: IMPORTANT MOTHERFUCKER
+        return false;
+    }
 
     bool white_wall(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == WHITE_WALL);

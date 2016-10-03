@@ -42,12 +42,18 @@ void generate_placement_moves(const Board &board, Moves &moves, const bool white
 void generate_motion_moves(const Board &board, Moves &moves, const bool white);
 void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
 void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
+/* declaration of the new functions */
+int alpha_beta_search(Board &board, const int cutoff, const bool player_color);
+int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+
+//=========================================================
 
 void generate_moves(const Board &board, Moves &moves, const bool white) {
     /* generates a list of moves for either player and prints them out */
-    // generate_placement_moves(board, moves, white);
+    generate_placement_moves(board, moves, white);
     generate_motion_moves(board, moves, white);
-    print_moves(moves);
+    // print_moves(moves);
 }
 
 void generate_placement_moves(const Board &board, Moves &moves, const bool white) {
@@ -126,6 +132,47 @@ void cap_motion(const char dir, const int x, const int y, string prefix, const B
     }
 }
 
+// TODO: game-over
+int alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
+     return max_value(board, INT_MIN, INT_MAX, cutoff, player_color);
+}
+
+int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+    if(board.game_over()) return INT_MIN;
+    if(cutoff == 0) return board.evaluate(player_color);
+
+    vector<Move> moves;
+    int value = INT_MIN;
+    generate_moves(board, moves, player_color);
+    // TODO: sort by evalutation function
+    // TODO: run checks if undo works correctly
+    for(const auto &move : moves) {
+        const bool did_crush = board.perform_move(move, player_color);
+        value = max(value, min_value(board, alpha, beta, cutoff-1, not player_color));
+        board.undo_move(move, player_color, did_crush);
+        if(value >= beta) return value;
+        alpha = max(alpha, value);
+    }
+    return value;
+}
+
+int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+    if(board.game_over()) return INT_MIN;
+    if(cutoff == 0) return board.evaluate(player_color);
+    int value = INT_MAX;
+    vector<Move> moves;
+    generate_moves(board, moves, player_color);
+    // same TODOS
+    for(const auto &move : moves) {
+        const bool did_crush = board.perform_move(move, player_color);
+        value = min(value, max_value(board, alpha, beta, cutoff-1, not player_color));
+        board.undo_move(move, player_color, did_crush);
+        if(value <= alpha) return value;
+        beta = min(beta, value);
+    }
+    return value;
+}
+
 int main() {
     vector<Move> moves;
     Board board;
@@ -138,16 +185,21 @@ int main() {
     board.board[0][2].push_back(WHITE_FLAT);
     board.board[0][3].push_back(BLACK_CRUSH);
 
-    print_board(board);  
-    Move undo_move = "3a1+111";
-    bool did_crush = board.perform_move(undo_move, false);
-    cout << "did_crush  = " << did_crush << "\n";
     print_board(board);
-    int black_value = board.evaluate(false);
-    int white_value = board.evaluate(true);
-    print_board(board);  
+    int value = alpha_beta_search(board, 6, false);
 
-    cerr << "evaluation = " <<  white_value << " : " << black_value << "\n";
+    cerr << "value = " << value << "\n";
+    print_board(board);
+
+    // Move undo_move = "3a1+111";
+    // bool did_crush = board.perform_move(undo_move, false);
+    // cout << "did_crush  = " << did_crush << "\n";
+    // print_board(board);
+    // int black_value = board.evaluate(false);
+    // int white_value = board.evaluate(true);
+    // print_board(board);  
+
+    // cerr << "evaluation = " <<  white_value << " : " << black_value << "\n";
     // board.undo_move(undo_move, false, did_crush);
     // cerr << "\n";
     // print_board(board);
