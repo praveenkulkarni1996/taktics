@@ -32,56 +32,56 @@ public:
     /* evaluates the move */
     int evaluate(bool player_color);
 
-    bool empty(int x, int y) {
+    bool empty(int x, int y) const {
         assert(0 <= x and x < N);
         assert(0 <= y and y < N);
         return board[x][y].empty();
     }
 
-    bool white_wall(int x, int y) {
+    bool white_wall(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == WHITE_WALL);
     }
-    bool white_flat(int x, int y) {
+    bool white_flat(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == WHITE_FLAT);
     }
-    bool white_cap(int x, int y) {
+    bool white_cap(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == WHITE_CAP);
     }
-    bool white_crush(int x, int y) {
+    bool white_crush(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == WHITE_CRUSH);
     }
-    bool black_wall(int x, int y) {
+    bool black_wall(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == BLACK_WALL);
     }
-    bool black_flat(int x, int y) {
+    bool black_flat(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == BLACK_FLAT);
     }
-    bool black_cap(int x, int y) {
+    bool black_cap(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == BLACK_CAP);
     }
-    bool black_crush(int x, int y) {
+    bool black_crush(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == BLACK_CRUSH);
     }
 
-    bool white(int x, int y) {
+    bool white(int x, int y) const {
         return white_flat(x, y) || white_wall(x, y) || white_cap(x, y) || white_crush(x, y);
     }
-    bool black(int x, int y) {
+    bool black(int x, int y) const {
         return black_flat(x, y) || black_wall(x, y) || black_cap(x, y) || black_crush(x, y);
     }
-    bool flat(int x, int y) {
+    bool flat(int x, int y) const {
       return white_flat(x, y) || black_flat(x, y);
     }
-    bool caps(int x, int y) {
+    bool caps(int x, int y) const {
       return white_cap(x, y) || black_cap(x, y);
     }
-    bool wall(int x, int y) {
+    bool wall(int x, int y) const {
       return white_wall(x, y) || black_wall(x, y);
     }
-    bool crush(int x, int y) {
+    bool crush(int x, int y) const {
       return white_crush(x, y) || black_crush(x, y);
     }
-    int height(int x, int y) {
+    int height(int x, int y) const {
         return board[x][y].size();
     }
 };

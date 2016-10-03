@@ -170,57 +170,6 @@ void Board::undo_motion(Move move, bool white, bool uncrush) {
     assert(this->white(x0, y0) == white);
 }
 
-// public:
-
-
-    // bool white_wall(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == WHITE_WALL);
-    // }
-    // bool white_flat(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == WHITE_FLAT);
-    // }
-    // bool white_cap(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == WHITE_CAP);
-    // }
-    // bool white_crush(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == WHITE_CRUSH);
-    // }
-    // bool black_wall(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == BLACK_WALL);
-    // }
-    // bool black_flat(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == BLACK_FLAT);
-    // }
-    // bool black_cap(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == BLACK_CAP);
-    // }
-    // bool black_crush(int x, int y) {
-    //     return (not empty(x, y) and board[x][y].back() == BLACK_CRUSH);
-    // }
-
-    // bool white(int x, int y) {
-    //     return white_flat(x, y) || white_wall(x, y) || white_cap(x, y) || white_crush(x, y);
-    // }
-    // bool black(int x, int y) {
-    //     return black_flat(x, y) || black_wall(x, y) || black_cap(x, y) || black_crush(x, y);
-    // }
-    // bool flat(int x, int y) {
-    //   return white_flat(x, y) || black_flat(x, y);
-    // }
-    // bool caps(int x, int y) {
-    //   return white_cap(x, y) || black_cap(x, y);
-    // }
-    // bool wall(int x, int y) {
-    //   return white_wall(x, y) || black_wall(x, y);
-    // }
-    // bool crush(int x, int y) {
-    //   return white_crush(x, y) || black_crush(x, y);
-    // }
-
-    // int height(int x, int y) {
-    //     return board[x][y].size();
-    // }
-
 int Board::evaluate(bool player_color) {
     return evaluate_captives(player_color) + evaluate_tops(player_color);
 }

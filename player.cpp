@@ -14,7 +14,7 @@ typedef uint64_t int64;
 
 typedef int8 Point;
 
-void print_board(Board &board) {
+void print_board(const Board &board) {
     for(int j = N - 1; j >= 0; --j) {
         for(int i = 0; i < N; ++i) {
             cout << "[";
@@ -37,20 +37,20 @@ void print_board(Board &board) {
         cout << "\n";
     }
 }
-void generate_moves(Board &board, bool white);
-void generate_placement_moves(Board &board, Moves &moves, bool white);
-void generate_motion_moves(Board &board, Moves &moves, bool white);
-void motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht);
-void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht);
+void generate_moves(const Board &board, const bool white);
+void generate_placement_moves(const Board &board, Moves &moves, const bool white);
+void generate_motion_moves(const Board &board, Moves &moves, const bool white);
+void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
+void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
 
-void generate_moves(Board &board, Moves &moves, bool white) {
+void generate_moves(const Board &board, Moves &moves, const bool white) {
     /* generates a list of moves for either player and prints them out */
     // generate_placement_moves(board, moves, white);
     generate_motion_moves(board, moves, white);
     print_moves(moves);
 }
 
-void generate_placement_moves(Board &board, Moves &moves, bool white) {
+void generate_placement_moves(const Board &board, Moves &moves, const bool white) {
     /* generates moves to place pieces for white and black */
     const int flats = (white) ? board.white_flats_rem : board.black_flats_rem;
     const int caps = (white) ? board.white_caps_rem : board.black_caps_rem;
@@ -70,7 +70,7 @@ void generate_placement_moves(Board &board, Moves &moves, bool white) {
     }
 }
 
-void generate_motion_moves(Board &board, Moves &moves, bool white) {
+void generate_motion_moves(const Board &board, Moves &moves, const bool white) {
     /* generate the moves for moving stacks for either player */
     const string dirs = "+-<>";
     for(int dir = 0; dir < 4; ++dir) {
@@ -102,7 +102,7 @@ void generate_motion_moves(Board &board, Moves &moves, bool white) {
     }
 }
 
-void motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht) {
+void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht) {
     if(out_of_bounds(x, y)) return;
     if(board.white_cap(x, y) || board.black_cap(x, y)) return;
     if(board.white_wall(x, y) || board.black_wall(x, y)) return;
@@ -114,7 +114,7 @@ void motion(const char dir, int x, int y, string prefix, Board &board, Moves &mo
     }
 }
 
-void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht) {
+void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht) {
     if(out_of_bounds(x, y)) return;
     if(board.white_cap(x, y) || board.black_cap(x, y)) return;
     if((board.white_wall(x, y) || board.black_wall(x, y)) and ht > 1) return;
