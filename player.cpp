@@ -1,18 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstdint>
+#include <climits>
 #include <cassert>
 // #include "utility.h"
 #include "board.h"
 
 using namespace std;
-
-typedef uint8_t int8;
-typedef uint16_t int16;
-typedef uint32_t int32;
-typedef uint64_t int64;
-
-typedef int8 Point;
 
 void print_board(const Board &board) {
     for(int j = N - 1; j >= 0; --j) {
@@ -178,6 +173,7 @@ int min_value(Board &board, int alpha, int beta, const int cutoff, const bool pl
 int main() {
     vector<Move> moves;
     Board board;
+    board.initBasis();
 
     board.board[0][0].push_back(BLACK_FLAT);
     board.board[0][0].push_back(WHITE_CRUSH);
@@ -199,13 +195,12 @@ int main() {
     // print_board(board);
     // int black_value = board.evaluate(false);
     // int white_value = board.evaluate(true);
-    // print_board(board);  
+    // print_board(board);
 
     // cerr << "evaluation = " <<  white_value << " : " << black_value << "\n";
     // board.undo_move(undo_move, false, did_crush);
     // cerr << "\n";
     // print_board(board);
-
 
     // board.board[0][0].push_back(WHITE_CRUSH);
     // board.board[0][0].push_back(BLACK_CAP);
