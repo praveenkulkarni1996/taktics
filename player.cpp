@@ -29,7 +29,7 @@ class Board {
 
     bool perform_placement(Move move, bool white) {
         const pair<int, int> xy = make_xy(move[1], move[2]);
-        const int x = xy.first; 
+        const int x = xy.first;
         const int y = xy.second;
         cout << "x = " << x << " y = " << y << "\n";
         if(white) {
@@ -98,7 +98,7 @@ class Board {
 
     void undo_placement(Move move, bool white) {
         const pair<int, int> xy = make_xy(move[1], move[2]);
-        const int x = xy.first; 
+        const int x = xy.first;
         const int y = xy.second;
         assert(board[x][y].size() == 1);
         assert(this->white(x, y) == white);
@@ -179,15 +179,101 @@ public:
     bool black(int x, int y) {
         return black_flat(x, y) || black_wall(x, y) || black_cap(x, y);
     }
+    bool cap(int x, int y) {
+      return white_cap(x, y) || black_cap(x, y);
+    }
+    bool wall(int x, int y) {
+      return white_wall(x, y) || black_wall(x, y);
+    }
     int height(int x, int y) {
         return board[x][y].size();
     }
 
 
+    // Utilities to calculate hash of positions
+
+    const int64 fnvBasis = 14695981039346656037;
+    const int64 fnvPrime = 1099511628211;
+    // TODO: initialize values for 5x5 basis array
+
+    // hash function for board: inspired by takticianbot
+    int64 getHash(bool toMove) {
+      int64 whiteControl = 0;
+      int64 blackControl = 0;
+      int64 capstone = 0;
+      int64 standing = 0;
+      int64 h = fnvBasis;
+      for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+           int index = i * N + j;
+           if(white(i,j)) {
+             whiteControl |= (1<<index);
+           }
+           if(black(i,j)) {
+             blackControl |= (1<<index);
+           }
+           if(cap(i,j)) {
+             capstone |= (1<<index);
+           }
+           if(wall(i,j)) {
+             standing |= (1<<index);
+           }
+           h ^= hashAt(i,j);
+        }
+      }
+      h = hash64(h, whiteControl);
+      h = hash64(h, blackControl);
+      h = hash64(h,standing);
+      h = hash64(h, capstone);
+      h = hash8(h, (int64) toMove);
+      return h;
+    }
+
+    // get hash for pieces at position (i,j) of board
+    int64 hashAt(int x, int y) {
+      if(height(x,y) == 0) {
+        return 0;
+      }
+      else {
+        int64 stackheight = (int64)height(x,y);
+        int64 stackbits = getStackBit64(x, y);
+        return hash64(hash8(basis[x][y], stackheight), stackbits);
+      }
+    }
+
+    int64 getStackBit64(int x, int y) {
+      int64 stackbits = 0;
+      vector<Stones> stack = board[x][y];
+      // Note the stack.size()-1 in loop:
+      for (int i = 0; i < (int)stack.size()-1; i++) {
+        // 1 for black piece, 0 for white
+        if(stack[i] == BLACK_FLAT || stack[i] == BLACK_WALL || stack[i] == BLACK_CAP || stack[i] == BLACK_CRUSH) {
+          stackbits |= (1<<i);
+        }
+      }
+      return stackbits;
+    }
+
+    int64 hash8(int64 basis, int64 b) {
+      return (basis ^ b) * fnvPrime;
+    }
+
+    int64 hash64(int64 basis, int64 w) {
+      int h = basis;
+    	h = (h ^ (w & 0xff)) * fnvPrime;
+    	h = (h ^ ((w >> 8) & 0xff)) * fnvPrime;
+    	h = (h ^ ((w >> 16) & 0xff)) * fnvPrime;
+    	h = (h ^ (w >> 24)) * fnvPrime;
+    	return h;
+    }
+
+    // End of hash utilities
+
+
     bool perform_move(const Move &move, bool white) {
-        if(move[0] == 'F' || move[0] == 'S' || move[0] == 'C') 
+        if(move[0] == 'F' || move[0] == 'S' || move[0] == 'C')
             return perform_placement(move, white);
-        else 
+        else
             return perform_motion(move, white);
     }
     void undo_move(const Move &move, bool white, bool uncrush) {
@@ -315,14 +401,14 @@ void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves
 int main() {
     vector<Move> moves;
     Board board;
-    /*    
+
     board.board[0][0].push_back(BLACK_FLAT);
     board.board[0][0].push_back(WHITE_CRUSH);
     board.board[0][0].push_back(BLACK_CAP);
 
     board.board[0][1].push_back(BLACK_CRUSH);
     board.board[0][2].push_back(WHITE_FLAT);
-    board.board[0][3].push_back(BLACK_WALL);
+    board.board[0][3].push_back(BLACK_CRUSH);
 
     print_board(board);
     Move undo_move = "3a1+111";
@@ -331,7 +417,7 @@ int main() {
     print_board(board);
     board.undo_move(undo_move, false, did_crush);
     print_board(board);
-    */
+
 
     // board.board[0][0].push_back(WHITE_CRUSH);
     // board.board[0][0].push_back(BLACK_CAP);
@@ -348,16 +434,16 @@ int main() {
     // board.board[0][1].push_back(WHITE_WALL);
     // board.board[0][0].push_back(BLACK_CAP);
     // print_board(board);
-    
+
     // generate_moves(board, moves, false);
     // Move move_to_undo = moves[0];
     // moves.clear();
     // cerr << "Move = " << move_to_undo << "\n";
-    
+
     // bool result = board.perform_move(move_to_undo, false);
     // print_board(board);
     // cout << "result = " << result << "\n";
-    
+
     // board.undo_motion(move_to_undo, false, result);
     // print_board(board);
 
