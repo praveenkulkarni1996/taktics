@@ -138,7 +138,8 @@ int alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
 }
 
 int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
-    if(board.game_over()) return INT_MIN;
+    /* has the other player won the game ? */
+    if(board.game_over(not player_color)) return INT_MIN;
     if(cutoff == 0) return board.evaluate(player_color);
 
     vector<Move> moves;
@@ -157,7 +158,8 @@ int max_value(Board &board, int alpha, int beta, const int cutoff, const bool pl
 }
 
 int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
-    if(board.game_over()) return INT_MIN;
+    /* has the other player won the game ? */
+    if(board.game_over(not player_color)) return INT_MIN;
     if(cutoff == 0) return board.evaluate(player_color);
     int value = INT_MAX;
     vector<Move> moves;
@@ -186,7 +188,7 @@ int main() {
     board.board[0][3].push_back(BLACK_CRUSH);
 
     print_board(board);
-    int value = alpha_beta_search(board, 6, false);
+    int value = alpha_beta_search(board, 7, false);
 
     cerr << "value = " << value << "\n";
     print_board(board);
