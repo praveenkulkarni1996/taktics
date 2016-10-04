@@ -13,15 +13,15 @@ enum Stones {
     WHITE_CRUSH
 };
 
-typedef string Move;
+typedef const string Move;
 typedef vector<Move> Moves;
 
 bool out_of_bounds(const int x, const int y, const int N=5);
-int next_x(int x, char dir);
-int next_y(int y, char dir);
-string make_sqr(int x, int y, int N=5);
+int next_x(const int x, const char dir);
+int next_y(const int y, const char dir);
+string make_sqr(const int x, const int y, const int N=5);
 void print_moves(Moves moves);
-pair<int, int> make_xy(char x, char y);
+pair<int, int> make_xy(const char x, const char y);
 
 bool check_white(const Stones &stone);
 bool check_black(const Stones &stone);

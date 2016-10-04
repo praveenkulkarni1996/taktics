@@ -42,7 +42,7 @@ pair<int, int> make_xy(char x, char y) {
 
 void print_moves(Moves moves) {
     cout << "[";
-    for(Move &move : moves) {
+    for(const Move &move : moves) {
         cout << move << ", ";
     }
     cout << "]";

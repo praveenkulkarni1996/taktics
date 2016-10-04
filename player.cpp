@@ -37,7 +37,7 @@ void print_board(const Board &board) {
         cout << "\n";
     }
 }
-void generate_moves(const Board &board, const bool white);
+// void generate_moves(const Board &board, const bool white);
 void generate_placement_moves(const Board &board, Moves &moves, const bool white);
 void generate_motion_moves(const Board &board, Moves &moves, const bool white);
 void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
@@ -65,8 +65,8 @@ void generate_placement_moves(const Board &board, Moves &moves, const bool white
             if(board.empty(x, y)) {
                 string s = make_sqr(x, y);
                 if(flats > 0) {
-                    moves.push_back("S" + s);
-                    moves.push_back("F" + s);
+                    moves.push_back((const string)("S" + s));
+                    moves.push_back((const string)("F" + s));
                 }
                 if(caps > 0) {
                     moves.push_back("C" + s);
@@ -188,7 +188,7 @@ int main() {
     board.board[0][3].push_back(BLACK_CRUSH);
 
     print_board(board);
-    int value = alpha_beta_search(board, 7, false);
+    int value = alpha_beta_search(board, 6, false);
 
     cerr << "value = " << value << "\n";
     print_board(board);
