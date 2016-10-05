@@ -41,20 +41,19 @@ pair<int, int> make_xy(char x, char y) {
 }
 
 void print_moves(Moves moves) {
-    cout << "[";
+    cerr << "[";
     for(Move &move : moves) {
-        cout << move << ", ";
+        cerr << move << ", ";
     }
-    cout << "]";
+    cerr << "]";
 }
 
 bool check_white(const Stones &stone) {
-    return (stone == WHITE_FLAT || stone == WHITE_WALL 
+    return (stone == WHITE_FLAT || stone == WHITE_WALL
         || stone == WHITE_CAP || stone == WHITE_CRUSH);
 }
 
 bool check_black(const Stones &stone) {
-    return (stone == BLACK_FLAT || stone == BLACK_WALL 
+    return (stone == BLACK_FLAT || stone == BLACK_WALL
         || stone == BLACK_CAP || stone == BLACK_CRUSH);
 }
-

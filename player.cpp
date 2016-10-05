@@ -38,9 +38,9 @@ void generate_motion_moves(const Board &board, Moves &moves, const bool white);
 void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
 void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
 /* declaration of the new functions */
-int alpha_beta_search(Board &board, const int cutoff, const bool player_color);
-int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
-int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool player_color);
+pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
 
 //=========================================================
 
@@ -128,46 +128,61 @@ void cap_motion(const char dir, const int x, const int y, string prefix, const B
 }
 
 // TODO: game-over
-int alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
+pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
      return max_value(board, INT_MIN, INT_MAX, cutoff, player_color);
 }
 
-int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
     /* has the other player won the game ? */
-    if(board.game_over(not player_color)) return INT_MIN;
-    if(cutoff == 0) return board.evaluate(player_color);
+    if(board.game_over(not player_color)) return make_pair("", INT_MIN);
+    if(cutoff == 0) return make_pair("", board.evaluate(player_color));
 
-    vector<Move> moves;
     int value = INT_MIN;
+    Move optimal_move;
+    vector<Move> moves;
     generate_moves(board, moves, player_color);
     // TODO: sort by evalutation function
     // TODO: run checks if undo works correctly
     for(const auto &move : moves) {
         const bool did_crush = board.perform_move(move, player_color);
-        value = max(value, min_value(board, alpha, beta, cutoff-1, not player_color));
+        // value = max(value, min_value(board, alpha, beta, cutoff-1, not player_color));
+        int move_min_value = min_value(board, alpha, beta, cutoff-1, not player_color).second;
+        if(value < move_min_value) {
+          value = move_min_value;
+          optimal_move = move;
+        }
+
         board.undo_move(move, player_color, did_crush);
-        if(value >= beta) return value;
+        if(value >= beta) return make_pair(move, value);
         alpha = max(alpha, value);
     }
-    return value;
+    pair<Move, int> move_pair = make_pair(optimal_move, value);
+    return move_pair;
 }
 
-int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
     /* has the other player won the game ? */
-    if(board.game_over(not player_color)) return INT_MIN;
-    if(cutoff == 0) return board.evaluate(player_color);
+    if(board.game_over(not player_color)) return make_pair("", INT_MIN);
+    if(cutoff == 0) return make_pair("", board.evaluate(player_color));
     int value = INT_MAX;
+    Move optimal_move;
     vector<Move> moves;
     generate_moves(board, moves, player_color);
     // same TODOS
     for(const auto &move : moves) {
         const bool did_crush = board.perform_move(move, player_color);
-        value = min(value, max_value(board, alpha, beta, cutoff-1, not player_color));
+        // value = min(value, max_value(board, alpha, beta, cutoff-1, not player_color));
+        int move_max_value = max_value(board, alpha, beta, cutoff-1, not player_color).second;
+        if(value > move_max_value) {
+          value = move_max_value;
+          optimal_move = move;
+        }
         board.undo_move(move, player_color, did_crush);
-        if(value <= alpha) return value;
+        if(value <= alpha) return make_pair(move, value);
         beta = min(beta, value);
     }
-    return value;
+    pair<Move, int> move_pair = make_pair(optimal_move, value);
+    return move_pair;
 }
 
 int main() {
@@ -175,19 +190,15 @@ int main() {
     Board board;
     board.initBasis();
 
-    board.board[0][0].push_back(BLACK_FLAT);
-    board.board[0][0].push_back(WHITE_CRUSH);
-    board.board[0][0].push_back(BLACK_CAP);
+    // board.board[0][0].push_back(BLACK_FLAT);
+    // board.board[0][0].push_back(WHITE_CRUSH);
+    // board.board[0][0].push_back(BLACK_CAP);
+    //
+    // board.board[0][1].push_back(BLACK_CRUSH);
+    // board.board[0][2].push_back(WHITE_FLAT);
+    // board.board[0][3].push_back(BLACK_CRUSH);
 
-    board.board[0][1].push_back(BLACK_CRUSH);
-    board.board[0][2].push_back(WHITE_FLAT);
-    board.board[0][3].push_back(BLACK_CRUSH);
-
-    print_board(board);
-    int value = alpha_beta_search(board, 6, false);
-
-    cerr << "value = " << value << "\n";
-    print_board(board);
+    
 
     // Move undo_move = "3a1+111";
     // bool did_crush = board.perform_move(undo_move, false);
