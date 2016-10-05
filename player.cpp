@@ -12,24 +12,24 @@ using namespace std;
 void print_board(const Board &board) {
     for(int j = N - 1; j >= 0; --j) {
         for(int i = 0; i < N; ++i) {
-            cout << "[";
+            cerr << "[";
             for(auto stone : board.board[i][j]) {
                 switch (stone) {
-                    case WHITE_CAP: cout << "WC"; break;
-                    case WHITE_WALL: cout << "WS"; break;
-                    case WHITE_FLAT: cout << "w"; break;
-                    case WHITE_CRUSH: cout << "ws"; break;
+                    case WHITE_CAP: cerr << "WC"; break;
+                    case WHITE_WALL: cerr << "WS"; break;
+                    case WHITE_FLAT: cerr << "w"; break;
+                    case WHITE_CRUSH: cerr << "ws"; break;
 
-                    case BLACK_CAP: cout << "BC"; break;
-                    case BLACK_WALL: cout << "BS"; break;
-                    case BLACK_FLAT: cout << "b"; break;
-                    case BLACK_CRUSH: cout << "bs"; break;
+                    case BLACK_CAP: cerr << "BC"; break;
+                    case BLACK_WALL: cerr << "BS"; break;
+                    case BLACK_FLAT: cerr << "b"; break;
+                    case BLACK_CRUSH: cerr << "bs"; break;
                 }
-                cout << ",";
+                cerr << ",";
             }
-            cout << "]\t";
+            cerr << "]\t";
         }
-        cout << "\n";
+        cerr << "\n";
     }
 }
 // void generate_moves(const Board &board, const bool white);
@@ -204,38 +204,40 @@ int main() {
     // First move - hardcoded to Fa2
     string first_move = "Fa2";
     board.perform_move((Move)first_move, not player_color);  // Reverse piece moved in first move
-    cout<< first_move << "\n";
+    cout<< first_move << "\n" << flush;
     print_board(board);
 
     string my_move;
     string opponent_move;
 
     cin >> opponent_move;
+    cerr << "Opponent moved: *" << opponent_move << "*" << endl;
     board.perform_move((Move)opponent_move, player_color);  // Reverse piece moved in first move
     print_board(board); // Print board after opponent's move
 
-    int depth = 5;
-    while (true) {
-      // Your move
-      pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
-      my_move = move_pair.first;
-      board.perform_move((Move)my_move, player_color);
-      cerr << "value = " << move_pair.second << "\n";
-      cout << my_move << "\n" << flush;
-      print_board(board); // Print board after your move
-      // if(board.game_over(not player_color)) {
-      //   break;  // You win
-      // }
-
-      // Opponent's move
-      cin >> opponent_move;
-      cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-      board.perform_move((Move)opponent_move, not player_color);
-      print_board(board); // Print board after opponent's move
-      // if(board.game_over(player_color)) {
-      //   break;  // You lose
-      // }
-    }
+    // Main game
+    // int depth = 5;
+    // while (true) {
+    //   // Your move
+    //   pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
+    //   my_move = move_pair.first;
+    //   board.perform_move((Move)my_move, player_color);
+    //   cerr << "value = " << move_pair.second << "\n";
+    //   cout << my_move << "\n" << flush;
+    //   print_board(board); // Print board after your move
+    //   // if(board.game_over(not player_color)) {
+    //   //   break;  // You win
+    //   // }
+    //
+    //   // Opponent's move
+    //   cin >> opponent_move;
+    //   cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+    //   board.perform_move((Move)opponent_move, not player_color);
+    //   print_board(board); // Print board after opponent's move
+    //   // if(board.game_over(player_color)) {
+    //   //   break;  // You lose
+    //   // }
+    // }
 
     // Move undo_move = "3a1+111";
     // bool did_crush = board.perform_move(undo_move, false);
