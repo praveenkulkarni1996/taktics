@@ -1,324 +1,15 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <cassert>
 #include <cstdint>
-#include "utility.h"
+#include <climits>
+#include <cassert>
+// #include "utility.h"
+#include "board.h"
+
 using namespace std;
 
-const int N = 5;
-
-typedef uint8_t int8;
-typedef uint16_t int16;
-typedef uint32_t int32;
-typedef uint64_t int64;
-
-typedef int8 Point;
-
-enum Stones {
-    BLACK_FLAT,
-    BLACK_WALL,
-    BLACK_CAP,
-    BLACK_CRUSH,
-    WHITE_FLAT,
-    WHITE_WALL,
-    WHITE_CAP,
-    WHITE_CRUSH
-};
-
-class Board {
-
-    bool perform_placement(Move move, bool white) {
-        const pair<int, int> xy = make_xy(move[1], move[2]);
-        const int x = xy.first;
-        const int y = xy.second;
-        cout << "x = " << x << " y = " << y << "\n";
-        if(white) {
-            switch(move[0]) {
-                case 'F': board[x][y].push_back(WHITE_FLAT); black_flats_rem--; break;
-                case 'S': board[x][y].push_back(WHITE_WALL); black_flats_rem--; break;
-                case 'C': board[x][y].push_back(WHITE_CAP);  black_caps_rem--; break;
-                default : assert(false);
-            }
-        } else {
-            switch(move[0]) {
-                case 'F': board[x][y].push_back(BLACK_FLAT); black_flats_rem--; break;
-                case 'S': board[x][y].push_back(BLACK_WALL); black_flats_rem--; break;
-                case 'C': board[x][y].push_back(BLACK_CAP);  black_caps_rem--; break;
-                default : assert(false);
-            }
-        }
-        return false; // because you cannot crush in a placement
-    }
-
-    bool perform_motion(Move move, bool white) {
-        // Assumes a valid move
-        /* returns if you crushed or not */
-        int h = move[0] - '0';
-        bool crush = false;
-        const pair<int, int> xy = make_xy(move[1], move[2]);
-        int x = xy.first;
-        int y = xy.second;
-
-        assert(not board[x][y].empty());
-        assert(this->white(x, y) == white);
-
-        const char dir = move[3];
-        cout << "x = " << x << " y = " << y << "\n";
-        vector<Stones> pickup;
-        vector<int> drops;
-        assert((int)board[x][y].size() >= h);
-        for(int i = 4; i < (int)move.length(); ++i)
-            drops.push_back(move[i] - '0');
-        for(int i = 0; i < h; ++i) {
-            Stones stone = board[x][y].back();
-            board[x][y].pop_back();
-            pickup.push_back(stone);
-        }
-        for(int i = 0; i < (int)drops.size(); ++i) {
-            x = next_x(x, dir);
-            y = next_y(y, dir);
-            assert(not out_of_bounds(x, y));
-            for(int j = 0; j < drops[i]; ++j) {
-                Stones stone = pickup.back();
-                pickup.pop_back();
-                if(board[x][y].empty() == false) {
-                    if(board[x][y].back() == WHITE_WALL or board[x][y].back() == BLACK_WALL) {
-                        crush = true;
-                        cerr << "crushed at " << x << ", " << y << "\n";
-                        assert(stone == WHITE_CAP or stone == BLACK_CAP);
-                        board[x][y].back() = (board[x][y].back() == WHITE_WALL)
-                                            ? WHITE_CRUSH : BLACK_CRUSH;
-                    }
-                }
-                board[x][y].push_back(stone);
-            }
-        }
-        return crush;
-    }
-
-    void undo_placement(Move move, bool white) {
-        const pair<int, int> xy = make_xy(move[1], move[2]);
-        const int x = xy.first;
-        const int y = xy.second;
-        assert(board[x][y].size() == 1);
-        assert(this->white(x, y) == white);
-        board[x][y].pop_back();
-    }
-
-    void undo_motion(Move move, bool white, bool uncrush) {
-        /*  read the height of the stack */
-        const char dir = (move[3]);
-        /* read the final coordinates */
-        const pair<int, int> xy = make_xy(move[1], move[2]);
-        const int x0 = xy.first;
-        const int y0 = xy.second;
-        int x = xy.first;
-        int y = xy.second;
-        vector<Stones> temp;
-        vector<int> drops;
-        for(int i = 4; i < (int)move.length(); ++i) {
-            drops.push_back(move[i] - '0');
-        }
-        for(int i = 0; i < (int)drops.size(); ++i) {
-            x = next_x(x, dir), y = next_y(y, dir);
-            for(int j = 0; j < drops[i]; ++j) {
-                Stones stone = board[x][y].back();
-                board[x][y].pop_back();
-                temp.push_back(stone);
-            }
-            assert(drops[i] == (int)temp.size());
-            for(int j = 0; j < drops[i]; ++j) {
-                Stones stone = temp.back();
-                temp.pop_back();
-                board[x0][y0].push_back(stone);
-            }
-        }
-        if(uncrush == true) {
-            assert(board[x][y].back() == BLACK_CRUSH or board[x][y].back() == WHITE_CRUSH);
-            assert(board[x0][y0].back() == BLACK_CAP or board[x0][y0].back() == WHITE_CAP);
-            cerr << "uncrushed at x = " << x << ", y = " << y << "\n";
-            board[x][y].back() = (board[x][y].back() == BLACK_CRUSH) ? BLACK_WALL : WHITE_WALL;
-        }
-        assert(this->white(x0, y0) == white);
-    }
-
-public:
-    vector<Stones> board[5][5];
-    int white_flats_rem = 21;
-    int white_caps_rem = 1;
-    int black_flats_rem = 21;
-    int black_caps_rem = 1;
-
-    bool empty(int x, int y) {
-        assert(0 <= x and x < N);
-        assert(0 <= y and y < N);
-        return board[x][y].empty();
-    }
-
-    bool white_wall(int x, int y) {
-        return (not empty(x, y) and board[x][y].back() == WHITE_WALL);
-    }
-    bool white_flat(int x, int y) {
-        return (not empty(x, y) and board[x][y].back() == WHITE_FLAT);
-    }
-    bool white_cap(int x, int y) {
-        return (not empty(x, y) and board[x][y].back() == WHITE_CAP);
-    }
-    bool black_wall(int x, int y) {
-        return (not empty(x, y) and board[x][y].back() == BLACK_WALL);
-    }
-    bool black_flat(int x, int y) {
-        return (not empty(x, y) and board[x][y].back() == BLACK_FLAT);
-    }
-    bool black_cap(int x, int y) {
-        return (not empty(x, y) and board[x][y].back() == BLACK_CAP);
-    }
-    bool white(int x, int y) {
-        return white_flat(x, y) || white_wall(x, y) || white_cap(x, y);
-    }
-    bool black(int x, int y) {
-        return black_flat(x, y) || black_wall(x, y) || black_cap(x, y);
-    }
-    bool cap(int x, int y) {
-      return white_cap(x, y) || black_cap(x, y);
-    }
-    bool wall(int x, int y) {
-      return white_wall(x, y) || black_wall(x, y);
-    }
-    int height(int x, int y) {
-        return board[x][y].size();
-    }
-
-
-    // Utilities to calculate hash of positions
-
-    const int64 fnvBasis = 14695981039346656037;
-    const int64 fnvPrime = 1099511628211;
-    // TODO: initialize values for 5x5 basis array
-    int64 basis[5][5];
-
-    /* ------------------------------------------- */
-
-    void initBasis() {
-      basis[0][0] = 18183439681736624571;
-      basis[0][1] = 6027321677903241570;
-      basis[0][2] = 7291301521048381893;
-      basis[0][3] = 16707003755830242952;
-      basis[0][4] = 10256755329810482736;
-      basis[1][0] = 6343378603570537650;
-      basis[1][1] = 6662624611957088715;
-      basis[1][2] = 11812679395820742279;
-      basis[1][3] = 12623970433846802091;
-      basis[1][4] = 355866642316429502;
-      basis[2][0] = 9214262323919156496;
-      basis[2][1] = 2687856525294241330;
-      basis[2][2] = 7372598617540182037;
-      basis[2][3] = 13345869983351199968;
-      basis[2][4] = 7648745695164505374;
-      basis[3][0] = 15308890490440544787;
-      basis[3][1] = 722985701341625725;
-      basis[3][2] = 52572759407397074;
-      basis[3][3] = 4647247616217886398;
-      basis[3][4] = 12286721093444641706;
-      basis[4][0] = 13362207002028843134;
-      basis[4][1] = 18060721682244888260;
-      basis[4][2] = 11725222004378576229;
-      basis[4][3] = 13225017917370162217;
-      basis[4][4] = 11877932724692211758;
-    }
-
-    // hash function for board: inspired by takticianbot
-    int64 getHash(bool toMove) {
-      int64 whiteControl = 0;
-      int64 blackControl = 0;
-      int64 capstone = 0;
-      int64 standing = 0;
-      int64 h = fnvBasis;
-      for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-           int index = i * N + j;
-           if(white(i,j)) {
-             whiteControl |= (1<<index);
-           }
-           if(black(i,j)) {
-             blackControl |= (1<<index);
-           }
-           if(cap(i,j)) {
-             capstone |= (1<<index);
-           }
-           if(wall(i,j)) {
-             standing |= (1<<index);
-           }
-           h ^= hashAt(i,j);
-        }
-      }
-      h = hash64(h, whiteControl);
-      h = hash64(h, blackControl);
-      h = hash64(h,standing);
-      h = hash64(h, capstone);
-      h = hash8(h, (int64) toMove);
-      return h;
-    }
-
-    // get hash for pieces at position (i,j) of board
-    int64 hashAt(int x, int y) {
-      if(height(x,y) == 0) {
-        return 0;
-      }
-      else {
-        int64 stackheight = (int64)height(x,y);
-        int64 stackbits = getStackBit64(x, y);
-        return hash64(hash8(basis[x][y], stackheight), stackbits);
-      }
-    }
-
-    int64 getStackBit64(int x, int y) {
-      int64 stackbits = 0;
-      vector<Stones> stack = board[x][y];
-      // Note the stack.size()-1 in loop:
-      for (int i = 0; i < (int)stack.size()-1; i++) {
-        // 1 for black piece, 0 for white
-        if(stack[i] == BLACK_FLAT || stack[i] == BLACK_WALL || stack[i] == BLACK_CAP || stack[i] == BLACK_CRUSH) {
-          stackbits |= (1<<i);
-        }
-      }
-      return stackbits;
-    }
-
-    int64 hash8(int64 basis, int64 b) {
-      return (basis ^ b) * fnvPrime;
-    }
-
-    int64 hash64(int64 basis, int64 w) {
-      int h = basis;
-    	h = (h ^ (w & 0xff)) * fnvPrime;
-    	h = (h ^ ((w >> 8) & 0xff)) * fnvPrime;
-    	h = (h ^ ((w >> 16) & 0xff)) * fnvPrime;
-    	h = (h ^ (w >> 24)) * fnvPrime;
-    	return h;
-    }
-
-    // End of hash utilities
-
-
-    bool perform_move(const Move &move, bool white) {
-        if(move[0] == 'F' || move[0] == 'S' || move[0] == 'C')
-            return perform_placement(move, white);
-        else
-            return perform_motion(move, white);
-    }
-    void undo_move(const Move &move, bool white, bool uncrush) {
-        if(move[0] == 'F' || move[0] == 'S' || move[0] == 'C') {
-            assert(uncrush == false);
-            return undo_placement(move, white);
-        }
-        else return undo_motion(move, white, uncrush);
-    }
-};
-
-
-void print_board(Board &board) {
+void print_board(const Board &board) {
     for(int j = N - 1; j >= 0; --j) {
         for(int i = 0; i < N; ++i) {
             cout << "[";
@@ -341,20 +32,26 @@ void print_board(Board &board) {
         cout << "\n";
     }
 }
-void generate_moves(Board &board, bool white);
-void generate_placement_moves(Board &board, Moves &moves, bool white);
-void generate_motion_moves(Board &board, Moves &moves, bool white);
-void motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht);
-void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht);
+void generate_moves(const Board &board, const bool white);
+void generate_placement_moves(const Board &board, Moves &moves, const bool white);
+void generate_motion_moves(const Board &board, Moves &moves, const bool white);
+void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
+void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
+/* declaration of the new functions */
+int alpha_beta_search(Board &board, const int cutoff, const bool player_color);
+int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
 
-void generate_moves(Board &board, Moves &moves, bool white) {
+//=========================================================
+
+void generate_moves(const Board &board, Moves &moves, const bool white) {
     /* generates a list of moves for either player and prints them out */
-    // generate_placement_moves(board, moves, white);
+    generate_placement_moves(board, moves, white);
     generate_motion_moves(board, moves, white);
-    print_moves(moves);
+    // print_moves(moves);
 }
 
-void generate_placement_moves(Board &board, Moves &moves, bool white) {
+void generate_placement_moves(const Board &board, Moves &moves, const bool white) {
     /* generates moves to place pieces for white and black */
     const int flats = (white) ? board.white_flats_rem : board.black_flats_rem;
     const int caps = (white) ? board.white_caps_rem : board.black_caps_rem;
@@ -374,7 +71,7 @@ void generate_placement_moves(Board &board, Moves &moves, bool white) {
     }
 }
 
-void generate_motion_moves(Board &board, Moves &moves, bool white) {
+void generate_motion_moves(const Board &board, Moves &moves, const bool white) {
     /* generate the moves for moving stacks for either player */
     const string dirs = "+-<>";
     for(int dir = 0; dir < 4; ++dir) {
@@ -406,7 +103,7 @@ void generate_motion_moves(Board &board, Moves &moves, bool white) {
     }
 }
 
-void motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht) {
+void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht) {
     if(out_of_bounds(x, y)) return;
     if(board.white_cap(x, y) || board.black_cap(x, y)) return;
     if(board.white_wall(x, y) || board.black_wall(x, y)) return;
@@ -418,7 +115,7 @@ void motion(const char dir, int x, int y, string prefix, Board &board, Moves &mo
     }
 }
 
-void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves &moves, int ht) {
+void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht) {
     if(out_of_bounds(x, y)) return;
     if(board.white_cap(x, y) || board.black_cap(x, y)) return;
     if((board.white_wall(x, y) || board.black_wall(x, y)) and ht > 1) return;
@@ -430,8 +127,51 @@ void cap_motion(const char dir, int x, int y, string prefix, Board &board, Moves
     }
 }
 
+// TODO: game-over
+int alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
+     return max_value(board, INT_MIN, INT_MAX, cutoff, player_color);
+}
+
+int max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+    /* has the other player won the game ? */
+    if(board.game_over(not player_color)) return INT_MIN;
+    if(cutoff == 0) return board.evaluate(player_color);
+
+    vector<Move> moves;
+    int value = INT_MIN;
+    generate_moves(board, moves, player_color);
+    // TODO: sort by evalutation function
+    // TODO: run checks if undo works correctly
+    for(const auto &move : moves) {
+        const bool did_crush = board.perform_move(move, player_color);
+        value = max(value, min_value(board, alpha, beta, cutoff-1, not player_color));
+        board.undo_move(move, player_color, did_crush);
+        if(value >= beta) return value;
+        alpha = max(alpha, value);
+    }
+    return value;
+}
+
+int min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+    /* has the other player won the game ? */
+    if(board.game_over(not player_color)) return INT_MIN;
+    if(cutoff == 0) return board.evaluate(player_color);
+    int value = INT_MAX;
+    vector<Move> moves;
+    generate_moves(board, moves, player_color);
+    // same TODOS
+    for(const auto &move : moves) {
+        const bool did_crush = board.perform_move(move, player_color);
+        value = min(value, max_value(board, alpha, beta, cutoff-1, not player_color));
+        board.undo_move(move, player_color, did_crush);
+        if(value <= alpha) return value;
+        beta = min(beta, value);
+    }
+    return value;
+}
+
 int main() {
-    /*vector<Move> moves;
+    vector<Move> moves;
     Board board;
     board.initBasis();
 
@@ -444,17 +184,23 @@ int main() {
     board.board[0][3].push_back(BLACK_CRUSH);
 
     print_board(board);
-    Move undo_move = "3a1+111";
-    bool did_crush = board.perform_move(undo_move, false);
-    cout << "did_crush  = " << did_crush << "\n";
+    int value = alpha_beta_search(board, 6, false);
+
+    cerr << "value = " << value << "\n";
     print_board(board);
-    board.undo_move(undo_move, false, did_crush);
-    print_board(board);
-    */
-    /*// Test hash
-    int64 board_hash = board.getHash(false);
-    cout << "Board hash: " << board_hash << endl;
-    */
+
+    // Move undo_move = "3a1+111";
+    // bool did_crush = board.perform_move(undo_move, false);
+    // cout << "did_crush  = " << did_crush << "\n";
+    // print_board(board);
+    // int black_value = board.evaluate(false);
+    // int white_value = board.evaluate(true);
+    // print_board(board);
+
+    // cerr << "evaluation = " <<  white_value << " : " << black_value << "\n";
+    // board.undo_move(undo_move, false, did_crush);
+    // cerr << "\n";
+    // print_board(board);
 
     // board.board[0][0].push_back(WHITE_CRUSH);
     // board.board[0][0].push_back(BLACK_CAP);

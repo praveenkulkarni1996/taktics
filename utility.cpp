@@ -47,3 +47,14 @@ void print_moves(Moves moves) {
     }
     cout << "]";
 }
+
+bool check_white(const Stones &stone) {
+    return (stone == WHITE_FLAT || stone == WHITE_WALL 
+        || stone == WHITE_CAP || stone == WHITE_CRUSH);
+}
+
+bool check_black(const Stones &stone) {
+    return (stone == BLACK_FLAT || stone == BLACK_WALL 
+        || stone == BLACK_CAP || stone == BLACK_CRUSH);
+}
+
