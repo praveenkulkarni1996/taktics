@@ -3,7 +3,7 @@ CC = g++
 # compiler flags:
 #  -g    adds debugging information to the executable file
 #  -w    disables warnings
-CFLAGS  = -g -w -O3 -march=native -std=c++11
+CFLAGS  = -w -Ofast -march=native -std=c++11
 
 # the build target executable:
 TARGET = player
