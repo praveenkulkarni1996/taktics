@@ -16,8 +16,8 @@ const int N = 5;
 class Board {
     /* searches for a road win by `player color` */
 
-    int evaluate_captives(bool player_color) const;
-    int evaluate_tops(bool player_color) const;
+    int evaluate_captives(const bool player_color) const;
+    int evaluate_tops(const bool player_color) const;
 
     /* perform the two types of moves */
     bool perform_placement(Move move, bool white);
@@ -28,7 +28,8 @@ class Board {
     void undo_motion(Move move, bool white, bool uncrush);
 public:
     bool player_road_win(const bool player_color) const;
-
+    bool player_flat_win(const bool player_color) const;
+    bool game_flat_win() const;
     /* for debugging purposes, they are outside */
     vector<Stones> board[5][5];
     int white_flats_rem = 21;

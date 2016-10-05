@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 
-int Board::evaluate_captives(bool player_color) const {
+int Board::evaluate_captives(const bool player_color) const {
     const int FLAT_CAPTIVES[] = {-200, 200};
     const int WALL_CAPTIVES[] = {-150, 300};
     const int CAPS_CAPTIVES[] = {-150, 250};
@@ -27,7 +27,7 @@ int Board::evaluate_captives(bool player_color) const {
     return score;
 }
 
-int Board::evaluate_tops(bool player_color) const {
+int Board::evaluate_tops(const bool player_color) const {
     const int FLAT = 400;
     const int WALL = 200;
     const int CAPS = 300;
@@ -53,7 +53,6 @@ int Board::evaluate_tops(bool player_color) const {
     }
     return score;
 }
-
 
 bool Board::perform_placement(Move move, bool white) {
     const pair<int, int> xy = make_xy(move[1], move[2]);
@@ -201,7 +200,6 @@ void Board::undo_move(const Move &move, bool white, bool uncrush) {
     else return undo_motion(move, white, uncrush);
 }
 
-
 bool Board::player_road_win(const bool player_color) const {
     bool reach[N][N];
     memset(reach, false, sizeof(reach));
@@ -222,13 +220,6 @@ bool Board::player_road_win(const bool player_color) const {
             }
         }
     }
-    // cerr << "left to right\n";
-    // for(int y = N-1; y >= 0; --y) {
-    //     for(int x = 0; x < N; ++x) {
-    //       cerr << reach[x][y];
-    //     } cerr << "\n";
-    // }
-
     bool game_over = false;
     for(int y = 0; y < N; ++y) game_over = game_over or reach[N-1][y];
     if(game_over) return true;
@@ -250,12 +241,36 @@ bool Board::player_road_win(const bool player_color) const {
             }
         }
     }
-    // cerr << "down and ";
-    // for(int y = N-1; y >= 0; --y) {
-    //     for(int x = 0; x < N; ++x) {
-    //       cerr << reach[x][y];
-    //     } cerr << "\n";
-    // }
     for(int x = 0; x < N; ++x) game_over = game_over or reach[x][N-1];
     return game_over;
+}
+
+bool Board::game_flat_win() const {
+    bool space_found = false;
+    for(int x = 0; x < N; ++x) {
+        for(int y = 0; y < N; ++y) {
+            if(empty(x, y)) return false;
+        }
+    }
+    return true;
+}
+
+bool Board::player_flat_win(const bool player_color) const {
+    // assumes that flat win holds
+    // assumes that top of stack color means that you own the piece
+    // returns true if the player draws or wins
+    int black_squares = 0, white_squares = 0;
+    for(int x = 0; x < N; ++x) {
+        for(int y = 0; y < N; ++y) {
+            if(white(x, y)) white_squares++;
+            else if(black(x, y)) black_squares++;
+            else assert(empty(x, y));
+        }
+    }
+    if(black_squares != white_squares) 
+        return ((black_squares < white_squares) == player_color);
+    else if(black_flats_rem != white_flats_rem) 
+        return ((black_flats_rem < white_flats_rem) == player_color);
+    else
+        return true;
 }

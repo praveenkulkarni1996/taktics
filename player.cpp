@@ -136,6 +136,12 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
     /* has the other player won the game ? */
     if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
     if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
+    if(board.game_flat_win()) {
+        const bool player_win = board.player_flat_win(player_color);
+        const bool other_win = board.player_flat_win(not player_color);
+        if(player_win) return make_pair("", INT_MAX);
+        if(other_win) return make_pair("", INT_MIN);
+    }
     if(cutoff == 0) return make_pair("", board.evaluate(player_color));
     // todo; check for flat win
     int value = INT_MIN;
@@ -164,7 +170,12 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
 pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
     if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
     if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
-    // todo; check for flat win
+    if(board.game_flat_win()) {
+        const bool player_win = board.player_flat_win(player_color);
+        const bool other_win = board.player_flat_win(not player_color);
+        if(player_win) return make_pair("", INT_MAX);
+        if(other_win) return make_pair("", INT_MIN);
+    }
     if(cutoff == 0) return make_pair("", board.evaluate(player_color));
     int value = INT_MAX;
     Move optimal_move;
@@ -255,7 +266,7 @@ int main() {
     print_board(board); // Print board after opponent's move
 
     // Main game
-    int depth = 5;
+    int depth = 4;
     while (true) {
       // Your move
       pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
