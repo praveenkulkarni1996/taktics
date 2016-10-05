@@ -30,6 +30,7 @@ public:
     bool player_road_win(const bool player_color) const;
     bool player_flat_win(const bool player_color) const;
     bool game_flat_win() const;
+    string board_to_string() const;
     /* for debugging purposes, they are outside */
     vector<Stones> board[5][5];
     int white_flats_rem = 21;

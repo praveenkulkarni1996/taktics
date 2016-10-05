@@ -274,3 +274,25 @@ bool Board::player_flat_win(const bool player_color) const {
     else
         return true;
 }
+
+string Board::board_to_string() const {
+    string s = "";
+    for(int x = 0; x < N; ++x) {
+        for(int y = 0; y < N; ++y) {
+            for(int h = 0; h < board[x][y].size(); ++h) {
+                switch(board[x][y][h]) {
+                    case WHITE_FLAT:
+                    case WHITE_CRUSH: s += 'a'; break;
+                    case WHITE_CAP: s += 'b'; break;
+                    case WHITE_WALL: s += 'c'; break;
+                    case BLACK_FLAT:
+                    case BLACK_CRUSH: s += 'x'; break;
+                    case BLACK_CAP: s += 'y'; break;
+                    case BLACK_WALL: s += 'z'; break; 
+                }   
+            }
+            s += 'p';
+        }
+    }
+    return s;
+}

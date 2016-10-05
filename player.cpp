@@ -4,10 +4,15 @@
 #include <cstdint>
 #include <climits>
 #include <cassert>
-// #include "utility.h"
 #include "board.h"
+#include <unordered_map>
 
 using namespace std;
+
+typedef unordered_map<string, pair<pair<Move, int>, int> > tranposition_table;
+tranposition_table max_table;
+tranposition_table min_table;
+
 
 void print_board(const Board &board) {
     for(int j = N - 1; j >= 0; --j) {
@@ -32,7 +37,6 @@ void print_board(const Board &board) {
         cerr << "\n";
     }
 }
-// void generate_moves(const Board &board, const bool white);
 void generate_placement_moves(const Board &board, Moves &moves, const bool white);
 void generate_motion_moves(const Board &board, Moves &moves, const bool white);
 void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
@@ -133,6 +137,14 @@ pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool pla
 }
 
 pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+    /* memoized in the hash table */
+    const string hash_string = board.board_to_string();
+    if(max_table.count(hash_string) == 1) {
+        auto memo = max_table[hash_string];
+        if(memo.second >= cutoff) {
+            return memo.first;
+        }
+    }
     /* has the other player won the game ? */
     if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
     if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
@@ -143,18 +155,15 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
         if(other_win) return make_pair("", INT_MIN);
     }
     if(cutoff == 0) return make_pair("", board.evaluate(player_color));
-    // todo; check for flat win
     int value = INT_MIN;
     Move optimal_move;
     vector<Move> moves;
     generate_moves(board, moves, player_color);
-    // TODO: sort by evalutation function
-    // TODO: run checks if undo works correctly
+    // TODO: order move by evaluation function
     for(const auto &move : moves) {
+        // const auto &move = ordered_move.second;
         const bool did_crush = board.perform_move(move, player_color);
-        // value = max(value, min_value(board, alpha, beta, cutoff-1, not player_color));
         int move_min_value = min_value(board, alpha, beta, cutoff-1, player_color).second;
-        // cerr << "MAX-> " << "Move: " << move << "\t" << "Value: " << move_min_value << endl;
         if(value < move_min_value) {
           value = move_min_value;
           optimal_move = move;
@@ -164,10 +173,19 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
         alpha = max(alpha, value);
     }
     pair<Move, int> move_pair = make_pair(optimal_move, value);
+    max_table.insert(make_pair(hash_string, make_pair(move_pair, cutoff)));
     return move_pair;
 }
 
 pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+    /* memoized in the hash table */
+    const string hash_string = board.board_to_string();
+    if(min_table.count(hash_string) == 1) {
+        auto memo = min_table[hash_string];
+        if(memo.second >= cutoff) {
+            return memo.first;
+        }
+    }
     if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
     if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
     if(board.game_flat_win()) {
@@ -196,6 +214,7 @@ pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, c
         beta = min(beta, value);
     }
     pair<Move, int> move_pair = make_pair(optimal_move, value);
+    min_table.insert(make_pair(hash_string, make_pair(move_pair, cutoff)));
     return move_pair;
 }
 
@@ -205,9 +224,15 @@ pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, c
 int main() {
     vector<Move> moves;
     Board board;
+    min_table.reserve((int)1e8);
+    max_table.reserve((int)1e8);
     // board.initBasis();
 
     // bool player_color = false; // Black chosen
+
+    // board.board[0][0].push_back(BLACK_FLAT);
+    // board.board[0][0].push_back(BLACK_FLAT);
+    // cerr << board.board_to_string() << "\n";
 
     // board.board[0][0].push_back(BLACK_FLAT);
     // board.board[0][0].push_back(WHITE_CRUSH);
@@ -269,7 +294,7 @@ int main() {
     }
 
     // Main game
-    int depth = 4;
+    int depth = 5;
     while (true) {
         if(player_color) {
             const auto result = alpha_beta_search(board, depth, player_color); 
@@ -289,25 +314,7 @@ int main() {
             cout << result.first << "\n" << flush;
             board.perform_move(result.first, player_color);
         }
-      // Your move
-      // pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
-      // // const Move my_move = move_pair.first;
-      // // board.perform_move((Move)my_move, player_color);
-      // // cerr << "value = " << move_pair.second << "\n";
-      // // cout << my_move << "\n" << flush;
-      // // print_board(board); // Print board after your move
-      // // // if(board.game_over(not player_color)) {
-      // //   break;  // You win
-      // // }
 
-      // // Opponent's move
-      // cin >> opponent_move;
-      // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-      // board.perform_move((Move)opponent_move, not player_color);
-      // print_board(board); // Print board after opponent's move
-      // // if(board.game_over(player_color)) {
-      //   break;  // You lose
-      // }
     }
 
 
