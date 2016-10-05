@@ -199,6 +199,9 @@ pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, c
     return move_pair;
 }
 
+
+
+
 int main() {
     vector<Move> moves;
     Board board;
@@ -241,50 +244,68 @@ int main() {
     int player_number;
     int board_size;
     int time_limit;
+    string opponent_move;
     cin >> player_number >> board_size >> time_limit;
     bool player_color = (player_number == 1);
     print_board(board);
-    string first_move;
+    string first_move = "Fa2";
+    // First move
     if (player_color) {
-      // First move - hardcoded to Fa2
-      first_move = "Fa2";
+        board.perform_move((Move)first_move, not player_color); // place opponent piece
+        cout << first_move << "\n" << flush;
+        print_board(board);
+        cin >> opponent_move;
+        board.perform_move((Move)opponent_move, player_color); // opponent moves my piece
+        print_board(board); // Print board after opponent's move
+        cerr << "Opponent moved: *" << opponent_move << "*" << endl;
     }
     else {
-      // Listen and then print
-      assert(false);
+        cin >> opponent_move;
+        board.perform_move((Move)opponent_move, player_color);
+        cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+        if(opponent_move == first_move) first_move = "Fa3";
+        board.perform_move((Move)first_move, not player_color);
+        cout << first_move << "\n" << flush;    
     }
-    board.perform_move((Move)first_move, not player_color);  // Reverse piece moved in first move
-    cout<< first_move << "\n" << flush;
-    print_board(board);
-
-    string my_move;
-    string opponent_move;
-
-    cin >> opponent_move;
-    cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-    board.perform_move((Move)opponent_move, player_color);  // Reverse piece moved in first move
-    print_board(board); // Print board after opponent's move
 
     // Main game
     int depth = 4;
     while (true) {
+        if(player_color) {
+            const auto result = alpha_beta_search(board, depth, player_color); 
+            cout << result.first << "\n" << flush;
+            board.perform_move(result.first, player_color);
+            cin >> opponent_move;
+            cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+            board.perform_move((Move)opponent_move, not player_color);
+            print_board(board); // Print board after opponent's move
+        }
+        else {
+            cin >> opponent_move;
+            cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+            board.perform_move((Move)opponent_move, not player_color);
+            print_board(board); // Print board after opponent's move
+            const auto result = alpha_beta_search(board, depth, player_color); 
+            cout << result.first << "\n" << flush;
+            board.perform_move(result.first, player_color);
+        }
       // Your move
-      pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
-      my_move = move_pair.first;
-      board.perform_move((Move)my_move, player_color);
-      cerr << "value = " << move_pair.second << "\n";
-      cout << my_move << "\n" << flush;
-      print_board(board); // Print board after your move
-      // if(board.game_over(not player_color)) {
-      //   break;  // You win
-      // }
+      // pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
+      // // const Move my_move = move_pair.first;
+      // // board.perform_move((Move)my_move, player_color);
+      // // cerr << "value = " << move_pair.second << "\n";
+      // // cout << my_move << "\n" << flush;
+      // // print_board(board); // Print board after your move
+      // // // if(board.game_over(not player_color)) {
+      // //   break;  // You win
+      // // }
 
-      // Opponent's move
-      cin >> opponent_move;
-      cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-      board.perform_move((Move)opponent_move, not player_color);
-      print_board(board); // Print board after opponent's move
-      // if(board.game_over(player_color)) {
+      // // Opponent's move
+      // cin >> opponent_move;
+      // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+      // board.perform_move((Move)opponent_move, not player_color);
+      // print_board(board); // Print board after opponent's move
+      // // if(board.game_over(player_color)) {
       //   break;  // You lose
       // }
     }
