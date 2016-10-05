@@ -134,9 +134,10 @@ pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool pla
 
 pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
     /* has the other player won the game ? */
-    if(board.game_over(not player_color)) return make_pair("", INT_MIN);
+    if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
+    if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
     if(cutoff == 0) return make_pair("", board.evaluate(player_color));
-
+    // todo; check for flat win
     int value = INT_MIN;
     Move optimal_move;
     vector<Move> moves;
@@ -152,7 +153,6 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
           value = move_min_value;
           optimal_move = move;
         }
-
         board.undo_move(move, player_color, did_crush);
         if(value >= beta) return make_pair(move, value);
         alpha = max(alpha, value);
@@ -162,8 +162,9 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
 }
 
 pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
-    /* has the other player won the game ? */
-    if(board.game_over(not player_color)) return make_pair("", INT_MIN);
+    if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
+    if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
+    // todo; check for flat win
     if(cutoff == 0) return make_pair("", board.evaluate(player_color));
     int value = INT_MAX;
     Move optimal_move;
@@ -190,9 +191,9 @@ pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, c
 int main() {
     vector<Move> moves;
     Board board;
-    board.initBasis();
+    // board.initBasis();
 
-    // bool player_color = true; // White chosen
+    // bool player_color = false; // Black chosen
 
     // board.board[0][0].push_back(BLACK_FLAT);
     // board.board[0][0].push_back(WHITE_CRUSH);
@@ -202,20 +203,28 @@ int main() {
     // board.board[0][2].push_back(WHITE_FLAT);
     // board.board[0][3].push_back(BLACK_CRUSH);
 
-    // board.board[0][0].push_back(WHITE_FLAT);
+    // board.board[2][0].push_back(BLACK_FLAT);
+    // board.board[2][1].push_back(BLACK_FLAT);
+    // board.board[1][2].push_back(BLACK_FLAT);
+    // board.board[1][3].push_back(BLACK_FLAT);
+    // board.board[1][4].push_back(BLACK_FLAT);
     // board.board[4][4].push_back(BLACK_FLAT);
-    //
+    // print_board(board);
+    // bool game_over = board.game_over();
+    // cerr << "result = " << game_over << "\n";
+    // // board.game_over(false);
+    
     // int depth = 1;
-    // for(int i = 0; i < 2; ++i) {
-    //   pair<Move, int> optimal_move = alpha_beta_search(board, depth, player_color);
-    //   cerr << "Move: " << optimal_move.first << endl;
-    //   cerr << "Value: " << optimal_move.second << endl;
-    //   board.perform_move(optimal_move.first, player_color);
-    //   cout << "White flats remaining: " << board.white_flats_rem << endl;
-    //   cout << "White caps remaining: " << board.white_caps_rem << endl;
-    //   cout << "Black flats remaining: " << board.black_flats_rem << endl;
-    //   cout << "Black caps remaining: " << board.black_caps_rem << endl;
-    //   print_board(board);
+    // for(int i = 0; i < 1; ++i) {
+    //     pair<Move, int> optimal_move = alpha_beta_search(board, depth, player_color);
+    //     cerr << "Move: " << optimal_move.first << endl;
+    //     cerr << "Value: " << optimal_move.second << endl;
+    //     board.perform_move(optimal_move.first, player_color);
+        // cout << "White flats remaining: " << board.white_flats_rem << endl;
+        // cout << "White caps remaining: " << board.white_caps_rem << endl;
+        // cout << "Black flats remaining: " << board.black_flats_rem << endl;
+        // cout << "Black caps remaining: " << board.black_caps_rem << endl;
+    //     print_board(board);
     // }
 
     int player_number;
@@ -268,4 +277,6 @@ int main() {
       //   break;  // You lose
       // }
     }
+
+
 }

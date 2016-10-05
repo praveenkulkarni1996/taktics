@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 
-int Board::evaluate_captives(bool player_color) {
+int Board::evaluate_captives(bool player_color) const {
     const int FLAT_CAPTIVES[] = {-200, 200};
     const int WALL_CAPTIVES[] = {-150, 300};
     const int CAPS_CAPTIVES[] = {-150, 250};
@@ -27,7 +27,7 @@ int Board::evaluate_captives(bool player_color) {
     return score;
 }
 
-int Board::evaluate_tops(bool player_color) {
+int Board::evaluate_tops(bool player_color) const {
     const int FLAT = 400;
     const int WALL = 200;
     const int CAPS = 300;
@@ -199,4 +199,63 @@ void Board::undo_move(const Move &move, bool white, bool uncrush) {
         return undo_placement(move, white);
     }
     else return undo_motion(move, white, uncrush);
+}
+
+
+bool Board::player_road_win(const bool player_color) const {
+    bool reach[N][N];
+    memset(reach, false, sizeof(reach));
+    for(int x = 0; x < N; ++x) {
+        if(x == 0) for(int y = 0; y < N; ++y) {
+            reach[x][y] = (road_piece(x, y) and (white(x, y) == player_color));
+        }
+        else {
+            assert(x >= 1 && x < N);
+            for(int y = 0; y < N; ++y) {
+                reach[x][y] |= reach[x-1][y] and (road_piece(x, y) and (white(x, y) == player_color));
+            }
+            for(int y = 1; y < N; ++y) {
+                reach[x][y] |= reach[x][y-1] and (road_piece(x, y) and (white(x, y) == player_color));
+            }
+            for(int y = N-2; y >= 0; --y) {
+                reach[x][y] |= reach[x][y+1] and (road_piece(x, y) and (white(x, y) == player_color));
+            }
+        }
+    }
+    // cerr << "left to right\n";
+    // for(int y = N-1; y >= 0; --y) {
+    //     for(int x = 0; x < N; ++x) {
+    //       cerr << reach[x][y];
+    //     } cerr << "\n";
+    // }
+
+    bool game_over = false;
+    for(int y = 0; y < N; ++y) game_over = game_over or reach[N-1][y];
+    if(game_over) return true;
+    memset(reach, false, sizeof(reach));
+    for(int y = 0; y < N; ++y) {
+        if(y == 0) for(int x = 0; x < N; ++x) {
+            reach[x][y] = (road_piece(x, y) and (white(x, y) == player_color));
+        }
+        else {
+            assert(y >= 1 and y < N);
+            for(int x = 0; x < N; ++x) {
+                reach[x][y] |= reach[x][y-1] and (road_piece(x, y) and (white(x, y) == player_color));
+            }
+            for(int x = 1; x < N; ++x) {
+                reach[x][y] |= reach[x-1][y] and (road_piece(x, y) and (white(x, y) == player_color));
+            }
+            for(int x = N-2; x >= 0; --x) {
+                reach[x][y] |= reach[x+1][y] and (road_piece(x, y) and (white(x, y) == player_color));
+            }
+        }
+    }
+    // cerr << "down and ";
+    // for(int y = N-1; y >= 0; --y) {
+    //     for(int x = 0; x < N; ++x) {
+    //       cerr << reach[x][y];
+    //     } cerr << "\n";
+    // }
+    for(int x = 0; x < N; ++x) game_over = game_over or reach[x][N-1];
+    return game_over;
 }

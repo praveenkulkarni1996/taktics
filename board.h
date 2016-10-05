@@ -14,8 +14,10 @@ typedef int8 Point;
 
 const int N = 5;
 class Board {
-    int evaluate_captives(bool player_color);
-    int evaluate_tops(bool player_color);
+    /* searches for a road win by `player color` */
+
+    int evaluate_captives(bool player_color) const;
+    int evaluate_tops(bool player_color) const;
 
     /* perform the two types of moves */
     bool perform_placement(Move move, bool white);
@@ -25,6 +27,8 @@ class Board {
     void undo_placement(Move move, bool white);
     void undo_motion(Move move, bool white, bool uncrush);
 public:
+    bool player_road_win(const bool player_color) const;
+
     /* for debugging purposes, they are outside */
     vector<Stones> board[5][5];
     int white_flats_rem = 21;
@@ -46,50 +50,12 @@ public:
         assert(0 <= y and y < N);
         return board[x][y].empty();
     }
-    bool game_over(const bool player_color) const {
-        bool reach[N][N];
-        // L to R
-        memset(reach, false, sizeof(reach));
-        for(int x = 0; x < N; ++x) {
-            if(x == 0) for(int y = 0; y < N; ++y) {
-                reach[x][y] = (not empty(x, y) and (white(x, y) == player_color));
-            }
-            else {
-                assert(x >= 1 && x < N);
-                for(int y = 0; y < N; ++y) {
-                    reach[x][y] = reach[x-1][y] and (not empty(x, y) and (white(x, y) == player_color));
-                }
-                for(int y = 1; y < N; ++y) {
-                    reach[x][y] = reach[x][y-1] and (not empty(x, y) and (white(x, y) == player_color));
-                }
-                for(int y = N-2; y >= 0; --y) {
-                    reach[x][y] = reach[x][y+1] and (not empty(x, y) and (white(x, y) == player_color));
-                }
-            }
-        }
-        bool game_over = false;
-        for(int y = 0; y < N; ++y) game_over = game_over or reach[N-1][y];
-        if(game_over) return true;
-        memset(reach, false, sizeof(reach));
-        for(int y = 0; y < N; ++y) {
-            if(y == 0) for(int x = 0; x < N; ++x) {
-                reach[x][y] = (not empty(x, y) and (white(x, y) == player_color));
-            }
-            else {
-                assert(y >= 1 and y < N);
-                for(int x = 0; x < N; ++x) {
-                    reach[x][y] = reach[x][y-1] and (not empty(x, y) and (white(x, y) == player_color));
-                }
-                for(int x = 1; x < N; ++x) {
-                    reach[x][y] = reach[x-1][y] and (not empty(x, y) and (white(x, y) == player_color));
-                }
-                for(int x = N-2; x >= 0; --x) {
-                    reach[x][y] = reach[x+1][y] and (not empty(x, y) and (white(x, y) == player_color));
-                }
-            }
-        }
-        for(int x = 0; x < N; ++x) game_over = game_over or reach[x][N-1];
-        return game_over;
+
+    bool road_win() const {
+        /* this game over simply tells you if the game is over */
+        /* it does not tell you who won */
+        /* TODO: add flat win */
+      return player_road_win(true) || player_road_win(false);
     }
 
     bool white_wall(int x, int y) const {
@@ -115,6 +81,10 @@ public:
     }
     bool black_crush(int x, int y) const {
         return (not empty(x, y) and board[x][y].back() == BLACK_CRUSH);
+    }
+    bool road_piece(int x, int y) const {
+        return white_crush(x, y) || white_cap(x, y) || white_flat(x, y)
+          || black_crush(x, y) || black_cap(x, y) || black_flat(x, y);
     }
     bool white(int x, int y) const {
         return white_flat(x, y) || white_wall(x, y) || white_cap(x, y) || white_crush(x, y);
