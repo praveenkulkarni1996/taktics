@@ -183,7 +183,9 @@ int Board::evaluate(bool player_color) {
 }
 
 int Board::evaluate_helper(bool player_color) {
-    return evaluate_captives(player_color) + evaluate_tops(player_color);
+    return evaluate_captives(player_color) 
+            + evaluate_tops(player_color) 
+            + evaluate_components(player_color);
 }
 
 bool Board::perform_move(const Move &move, bool white) {
@@ -296,3 +298,38 @@ string Board::board_to_string() const {
     }
     return s;
 }
+
+bool visit[N][N];
+
+void Board::dfs(const int x, const int y, LRUD &lrud, const bool player_color) const {
+    visit[x][y] = true;
+    lrud.l = min(lrud.l, x);
+    lrud.r = max(lrud.r, x);
+    lrud.d = min(lrud.d, y);
+    lrud.u = max(lrud.u, y);
+    int neighbour[4][2] = {{x+1, y}, {x-1, y}, {x, y-1}, {x, y+1}};
+    for(int i = 0; i < 4; ++i) {
+        const int xp = neighbour[i][0];
+        const int yp = neighbour[i][1];
+        if((not out_of_bounds(xp, yp)) and (not visit[xp][yp]) and (not empty(xp, yp)) and (white(xp, yp) == player_color)) {
+            dfs(xp, yp, lrud, player_color);
+        }
+    }
+}
+
+int Board::evaluate_components(const bool player_color) const {
+    memset(visit, false, sizeof(visit));
+    const int WEIGHTS[] = {0, 40, 200, 800, 5000};
+    int score = 0;
+    for(int x = 0; x < N; ++x) {
+        for(int y = 0; y < N; ++y) {
+            if((not visit[x][y]) and (not empty(x, y)) and (white(x, y) == player_color)) {
+                LRUD lrud = {x, x, y, y};
+                dfs(x, y, lrud, player_color);
+                score += (WEIGHTS[lrud.r - lrud.l] + WEIGHTS[lrud.u - lrud.d]);
+            }
+        }
+    }
+    return score;
+}
+

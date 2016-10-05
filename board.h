@@ -11,6 +11,9 @@ typedef uint64_t int64;
 
 typedef int8 Point;
 
+struct LRUD {
+    int l, r, u, d;
+};
 
 const int N = 5;
 class Board {
@@ -109,4 +112,7 @@ public:
     int height(int x, int y) const {
         return board[x][y].size();
     }
+    void dfs(const int x, const int y, LRUD &lrud, const bool player_color) const;
+    int evaluate_components(const bool player_color) const;
 };
+

@@ -167,9 +167,6 @@ const pair<Move, int> max_value(Board &board, int alpha, int beta, const int cut
         order.push_back(make_pair(value, move));
     }
     sort(order.rbegin(), order.rend());
-
-    // TODO: order move by evaluation function
-    // for(const auto &move : moves) {
     for(const auto &order_pair : order) {
         const auto move = order_pair.second;
         const bool did_crush = board.perform_move(move, player_color);
@@ -249,7 +246,7 @@ int main() {
     string opponent_move;
     cin >> player_number >> board_size >> time_limit;
     bool player_color = (player_number == 1);
-    print_board(board);
+
     string first_move = "Fa2";
     // First move
     if (player_color) {
@@ -271,7 +268,7 @@ int main() {
     }
 
     // Main game
-    int depth = 5;
+    int depth = 3;
     while (true) {
         if(player_color) {
             const auto result = alpha_beta_search(board, depth, player_color); 
@@ -291,8 +288,5 @@ int main() {
             cout << result.first << "\n" << flush;
             board.perform_move(result.first, player_color);
         }
-
     }
-
-
 }
