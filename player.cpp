@@ -238,48 +238,4 @@ int main() {
     //   //   break;  // You lose
     //   // }
     // }
-
-    // Move undo_move = "3a1+111";
-    // bool did_crush = board.perform_move(undo_move, false);
-    // cout << "did_crush  = " << did_crush << "\n";
-    // print_board(board);
-    // int black_value = board.evaluate(false);
-    // int white_value = board.evaluate(true);
-    // print_board(board);
-
-    // cerr << "evaluation = " <<  white_value << " : " << black_value << "\n";
-    // board.undo_move(undo_move, false, did_crush);
-    // cerr << "\n";
-    // print_board(board);
-
-    // board.board[0][0].push_back(WHITE_CRUSH);
-    // board.board[0][0].push_back(BLACK_CAP);
-    // board.board[0][2].push_back(WHITE_CRUSH);
-    // board.board[0][2].push_back(WHITE_WALL);
-    // generate_moves(board, moves, false);
-    // print_board(board);
-    // const Move move = "2a1+11";
-    // bool didcrush = board.perform_move(move, false);
-    // print_board(board);
-    // board.undo_move(move, false, didcrush);
-    // print_board(board);
-
-    // board.board[0][1].push_back(WHITE_WALL);
-    // board.board[0][0].push_back(BLACK_CAP);
-    // print_board(board);
-
-    // generate_moves(board, moves, false);
-    // Move move_to_undo = moves[0];
-    // moves.clear();
-    // cerr << "Move = " << move_to_undo << "\n";
-
-    // bool result = board.perform_move(move_to_undo, false);
-    // print_board(board);
-    // cout << "result = " << result << "\n";
-
-    // board.undo_motion(move_to_undo, false, result);
-    // print_board(board);
-
-
-    // generate_moves(board, moves, false);
 }

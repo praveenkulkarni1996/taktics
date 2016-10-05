@@ -15,12 +15,12 @@ int Board::evaluate_captives(bool player_color) {
             for(int h = 0; h < (int)(board[x][y].size() - 1); ++h) {
                 bool stone_color = check_white(board[x][y][h]);
                 if(stone_color != player_color) continue;
-                const int same = (top_color == stone_color);                        
+                const int same = (top_color == stone_color);
                 if(caps(x, y)) score += CAPS_CAPTIVES[same];
-                else if(wall(x, y)) score += WALL_CAPTIVES[same]; 
-                else if(flat(x, y)) score += FLAT_CAPTIVES[same]; 
+                else if(wall(x, y)) score += WALL_CAPTIVES[same];
+                else if(flat(x, y)) score += FLAT_CAPTIVES[same];
                 else if(crush(x, y)) score += FLAT_CAPTIVES[same];
-                else assert(false); 
+                else assert(false);
             }
         }
     }
@@ -62,9 +62,9 @@ bool Board::perform_placement(Move move, bool white) {
     // cout << "x = " << x << " y = " << y << "\n";
     if(white) {
         switch(move[0]) {
-            case 'F': board[x][y].push_back(WHITE_FLAT); black_flats_rem--; break;
-            case 'S': board[x][y].push_back(WHITE_WALL); black_flats_rem--; break;
-            case 'C': board[x][y].push_back(WHITE_CAP);  black_caps_rem--; break;
+            case 'F': board[x][y].push_back(WHITE_FLAT); white_flats_rem--; break;
+            case 'S': board[x][y].push_back(WHITE_WALL); white_flats_rem--; break;
+            case 'C': board[x][y].push_back(WHITE_CAP);  white_caps_rem--; break;
             default : assert(false);
         }
     } else {
