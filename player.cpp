@@ -42,9 +42,9 @@ void generate_motion_moves(const Board &board, Moves &moves, const bool white);
 void motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
 void cap_motion(const char dir, const int x, const int y, string prefix, const Board &board, Moves &moves, const int ht);
 /* declaration of the new functions */
-pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool player_color);
-pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
-pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+const pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool player_color);
+const pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
+const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color);
 
 //=========================================================
 
@@ -131,12 +131,12 @@ void cap_motion(const char dir, const int x, const int y, string prefix, const B
     }
 }
 
-// TODO: game-over
-pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
-     return max_value(board, INT_MIN, INT_MAX, cutoff, player_color);
+const pair<Move, int> alpha_beta_search(Board &board, const int cutoff, const bool player_color) {
+    return max_value(board, INT_MIN, INT_MAX, cutoff, player_color);
 }
 
-pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+
+const pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
     /* memoized in the hash table */
     const string hash_string = board.board_to_string();
     if(max_table.count(hash_string) == 1) {
@@ -154,14 +154,24 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
         if(player_win) return make_pair("", INT_MAX);
         if(other_win) return make_pair("", INT_MIN);
     }
-    if(cutoff == 0) return make_pair("", board.evaluate(player_color));
+    if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
     int value = INT_MIN;
     Move optimal_move;
     vector<Move> moves;
     generate_moves(board, moves, player_color);
-    // TODO: order move by evaluation function
+    vector<pair<int, Move> > order;
     for(const auto &move : moves) {
-        // const auto &move = ordered_move.second;
+        const bool did_crush = board.perform_move(move, player_color);
+        const int value = min_value(board, alpha, beta, cutoff-3, player_color).second;
+        board.undo_move(move, player_color, did_crush);
+        order.push_back(make_pair(value, move));
+    }
+    sort(order.rbegin(), order.rend());
+
+    // TODO: order move by evaluation function
+    // for(const auto &move : moves) {
+    for(const auto &order_pair : order) {
+        const auto move = order_pair.second;
         const bool did_crush = board.perform_move(move, player_color);
         int move_min_value = min_value(board, alpha, beta, cutoff-1, player_color).second;
         if(value < move_min_value) {
@@ -177,7 +187,7 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
     return move_pair;
 }
 
-pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
+const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
     /* memoized in the hash table */
     const string hash_string = board.board_to_string();
     if(min_table.count(hash_string) == 1) {
@@ -194,17 +204,24 @@ pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, c
         if(player_win) return make_pair("", INT_MAX);
         if(other_win) return make_pair("", INT_MIN);
     }
-    if(cutoff == 0) return make_pair("", board.evaluate(player_color));
+    if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
     int value = INT_MAX;
     Move optimal_move;
     vector<Move> moves;
     generate_moves(board, moves, player_color);
-    // same TODOS
+    vector<pair<int, Move> > order;
     for(const auto &move : moves) {
         const bool did_crush = board.perform_move(move, player_color);
-        // value = min(value, max_value(board, alpha, beta, cutoff-1, not player_color));
+        const int value = max_value(board, alpha, beta, cutoff-3, player_color).second;
+        board.undo_move(move, player_color, did_crush);
+        order.push_back(make_pair(value, move));
+    }
+    sort(order.begin(), order.end());
+    // for(const auto &move : moves) {
+    for(const auto &order_pair : order) {
+        const auto move = order_pair.second;
+        const bool did_crush = board.perform_move(move, player_color);
         int move_max_value = max_value(board, alpha, beta, cutoff-1, player_color).second;
-        // cerr << "MIN-> " << "Move: " << move << "\t" << "Value: " << move_min_value << endl;
         if(value > move_max_value) {
           value = move_max_value;
           optimal_move = move;
@@ -226,46 +243,6 @@ int main() {
     Board board;
     min_table.reserve((int)1e8);
     max_table.reserve((int)1e8);
-    // board.initBasis();
-
-    // bool player_color = false; // Black chosen
-
-    // board.board[0][0].push_back(BLACK_FLAT);
-    // board.board[0][0].push_back(BLACK_FLAT);
-    // cerr << board.board_to_string() << "\n";
-
-    // board.board[0][0].push_back(BLACK_FLAT);
-    // board.board[0][0].push_back(WHITE_CRUSH);
-    // board.board[0][0].push_back(BLACK_CAP);
-    //
-    // board.board[0][1].push_back(BLACK_CRUSH);
-    // board.board[0][2].push_back(WHITE_FLAT);
-    // board.board[0][3].push_back(BLACK_CRUSH);
-
-    // board.board[2][0].push_back(BLACK_FLAT);
-    // board.board[2][1].push_back(BLACK_FLAT);
-    // board.board[1][2].push_back(BLACK_FLAT);
-    // board.board[1][3].push_back(BLACK_FLAT);
-    // board.board[1][4].push_back(BLACK_FLAT);
-    // board.board[4][4].push_back(BLACK_FLAT);
-    // print_board(board);
-    // bool game_over = board.game_over();
-    // cerr << "result = " << game_over << "\n";
-    // // board.game_over(false);
-    
-    // int depth = 1;
-    // for(int i = 0; i < 1; ++i) {
-    //     pair<Move, int> optimal_move = alpha_beta_search(board, depth, player_color);
-    //     cerr << "Move: " << optimal_move.first << endl;
-    //     cerr << "Value: " << optimal_move.second << endl;
-    //     board.perform_move(optimal_move.first, player_color);
-        // cout << "White flats remaining: " << board.white_flats_rem << endl;
-        // cout << "White caps remaining: " << board.white_caps_rem << endl;
-        // cout << "Black flats remaining: " << board.black_flats_rem << endl;
-        // cout << "Black caps remaining: " << board.black_caps_rem << endl;
-    //     print_board(board);
-    // }
-
     int player_number;
     int board_size;
     int time_limit;
