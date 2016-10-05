@@ -13,7 +13,7 @@ all: $(TARGET)
 
 $(TARGET): $(CPPFILES)
 	$(CC) $(CFLAGS) -o $(TARGET) $(CPPFILES)
-	cp $(TARGET) /media/quantumcoder/OS/Users/quantumcoder/Desktop/iitd/Sem5/AI/assignments/assignment3/Tak-sim/ 
+	cp $(TARGET) ../Tak-sim/ 
 
 run: $(TARGET)
 	./$(TARGET)
