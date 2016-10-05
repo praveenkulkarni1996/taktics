@@ -39,6 +39,7 @@ public:
 
     /* evaluates the move */
     int evaluate(bool player_color);
+    int evaluate_helper(bool player_color);
 
     bool empty(int x, int y) const {
         assert(0 <= x and x < N);

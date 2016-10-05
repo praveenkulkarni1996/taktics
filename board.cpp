@@ -171,6 +171,10 @@ void Board::undo_motion(Move move, bool white, bool uncrush) {
 }
 
 int Board::evaluate(bool player_color) {
+    return evaluate_helper(player_color) - evaluate_helper(not player_color);
+}
+
+int Board::evaluate_helper(bool player_color) {
     return evaluate_captives(player_color) + evaluate_tops(player_color);
 }
 
