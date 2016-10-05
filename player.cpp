@@ -198,7 +198,44 @@ int main() {
     // board.board[0][2].push_back(WHITE_FLAT);
     // board.board[0][3].push_back(BLACK_CRUSH);
 
-    
+    bool player_color = true; // White chosen
+
+    print_board(board);
+    // First move - hardcoded to Fa2
+    string first_move = "Fa2";
+    board.perform_move((Move)first_move, not player_color);  // Reverse piece moved in first move
+    cout<< first_move << "\n";
+    print_board(board);
+
+    string my_move;
+    string opponent_move;
+
+    cin >> opponent_move;
+    board.perform_move((Move)opponent_move, player_color);  // Reverse piece moved in first move
+    print_board(board); // Print board after opponent's move
+
+    int depth = 5;
+    while (true) {
+      // Your move
+      pair<Move, int> move_pair = alpha_beta_search(board, depth, player_color);
+      my_move = move_pair.first;
+      board.perform_move((Move)my_move, player_color);
+      cerr << "value = " << move_pair.second << "\n";
+      cout << my_move << "\n" << flush;
+      print_board(board); // Print board after your move
+      // if(board.game_over(not player_color)) {
+      //   break;  // You win
+      // }
+
+      // Opponent's move
+      cin >> opponent_move;
+      cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+      board.perform_move((Move)opponent_move, not player_color);
+      print_board(board); // Print board after opponent's move
+      // if(board.game_over(player_color)) {
+      //   break;  // You lose
+      // }
+    }
 
     // Move undo_move = "3a1+111";
     // bool did_crush = board.perform_move(undo_move, false);
