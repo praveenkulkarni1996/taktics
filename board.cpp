@@ -124,12 +124,21 @@ bool Board::perform_motion(Move move, bool white) {
     return crush;
 }
 
-void Board::undo_placement(Move move, bool white) {
+void Board::undo_placement(const Move move, const bool player_color) {
     const pair<int, int> xy = make_xy(move[1], move[2]);
     const int x = xy.first;
     const int y = xy.second;
     assert(board[x][y].size() == 1);
-    assert(this->white(x, y) == white);
+    assert(this->white(x, y) == player_color);
+    switch (board[x][y].back()) {
+      case WHITE_FLAT :
+      case WHITE_WALL : ++white_flats_rem; break;
+      case WHITE_CAP : ++white_caps_rem; break;
+      case BLACK_FLAT :
+      case BLACK_WALL : ++black_flats_rem; break;
+      case BLACK_CAP : ++black_caps_rem; break;
+      default: assert(false);
+    }
     board[x][y].pop_back();
 }
 

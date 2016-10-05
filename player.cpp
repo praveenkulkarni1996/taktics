@@ -147,7 +147,7 @@ pair<Move, int> max_value(Board &board, int alpha, int beta, const int cutoff, c
         const bool did_crush = board.perform_move(move, player_color);
         // value = max(value, min_value(board, alpha, beta, cutoff-1, not player_color));
         int move_min_value = min_value(board, alpha, beta, cutoff-1, player_color).second;
-        cerr << "MAX-> " << "Move: " << move << "\t" << "Value: " << move_min_value << endl;
+        // cerr << "MAX-> " << "Move: " << move << "\t" << "Value: " << move_min_value << endl;
         if(value < move_min_value) {
           value = move_min_value;
           optimal_move = move;
@@ -192,7 +192,7 @@ int main() {
     Board board;
     board.initBasis();
 
-    bool player_color = true; // White chosen
+    // bool player_color = true; // White chosen
 
     // board.board[0][0].push_back(BLACK_FLAT);
     // board.board[0][0].push_back(WHITE_CRUSH);
@@ -206,14 +206,33 @@ int main() {
     // board.board[4][4].push_back(BLACK_FLAT);
     //
     // int depth = 1;
-    // pair<Move, int> optimal_move = alpha_beta_search(board, depth, player_color);
-    // cerr << "Move: " << optimal_move.first << endl;
-    // cerr << "Value: " << optimal_move.second << endl;
-    // print_board(board);
+    // for(int i = 0; i < 2; ++i) {
+    //   pair<Move, int> optimal_move = alpha_beta_search(board, depth, player_color);
+    //   cerr << "Move: " << optimal_move.first << endl;
+    //   cerr << "Value: " << optimal_move.second << endl;
+    //   board.perform_move(optimal_move.first, player_color);
+    //   cout << "White flats remaining: " << board.white_flats_rem << endl;
+    //   cout << "White caps remaining: " << board.white_caps_rem << endl;
+    //   cout << "Black flats remaining: " << board.black_flats_rem << endl;
+    //   cout << "Black caps remaining: " << board.black_caps_rem << endl;
+    //   print_board(board);
+    // }
 
-    /*print_board(board);
-    // First move - hardcoded to Fa2
-    string first_move = "Fa2";
+    int player_number;
+    int board_size;
+    int time_limit;
+    cin >> player_number >> board_size >> time_limit;
+    bool player_color = (player_number == 1);
+    print_board(board);
+    string first_move;
+    if (player_color) {
+      // First move - hardcoded to Fa2
+      first_move = "Fa2";
+    }
+    else {
+      // Listen and then print
+      assert(false);
+    }
     board.perform_move((Move)first_move, not player_color);  // Reverse piece moved in first move
     cout<< first_move << "\n" << flush;
     print_board(board);
@@ -226,7 +245,7 @@ int main() {
     board.perform_move((Move)opponent_move, player_color);  // Reverse piece moved in first move
     print_board(board); // Print board after opponent's move
 
-    Main game
+    // Main game
     int depth = 5;
     while (true) {
       // Your move
@@ -248,5 +267,5 @@ int main() {
       // if(board.game_over(player_color)) {
       //   break;  // You lose
       // }
-    }*/
+    }
 }
