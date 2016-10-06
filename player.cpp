@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <climits>
 #include <cassert>
+#include <ctime>
 #include "board.h"
 #include <unordered_map>
 
@@ -12,7 +13,6 @@ using namespace std;
 typedef unordered_map<string, pair<pair<Move, int>, int> > tranposition_table;
 tranposition_table max_table;
 tranposition_table min_table;
-
 
 void print_board(const Board &board) {
     for(int j = N - 1; j >= 0; --j) {
@@ -245,6 +245,7 @@ int main() {
     int time_limit;
     string opponent_move;
     cin >> player_number >> board_size >> time_limit;
+    int time_count = time_limit;
     bool player_color = (player_number == 1);
 
     string first_move = "Fa2";
@@ -252,41 +253,60 @@ int main() {
     if (player_color) {
         board.perform_move((Move)first_move, not player_color); // place opponent piece
         cout << first_move << "\n" << flush;
-        print_board(board);
+        // print_board(board);
         cin >> opponent_move;
         board.perform_move((Move)opponent_move, player_color); // opponent moves my piece
-        print_board(board); // Print board after opponent's move
-        cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+        // print_board(board); // Print board after opponent's move
+        // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
     }
     else {
         cin >> opponent_move;
         board.perform_move((Move)opponent_move, player_color);
-        cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-        if(opponent_move == first_move) first_move = "Fa3";
+        // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+        if(opponent_move == first_move) first_move = "Fc3";
         board.perform_move((Move)first_move, not player_color);
-        cout << first_move << "\n" << flush;    
+        cout << first_move << "\n" << flush;
     }
 
     // Main game
-    int depth = 3;
+    int depth = 5;
+    int depth_constrained = 3;
+    int depth_play;
+    int time_constained = 60;
+    int elapsed_time;
+
     while (true) {
+        if(time_count < 60) {
+            depth_play = depth_constrained;
+        }
+        else {
+            depth_play = depth;
+        }
+        cerr << depth_play << endl;
+
         if(player_color) {
-            const auto result = alpha_beta_search(board, depth, player_color); 
+            clock_t start_time = clock();
+            const auto result = alpha_beta_search(board, depth_play, player_color);
             cout << result.first << "\n" << flush;
             board.perform_move(result.first, player_color);
+            elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
+            time_count -= elapsed_time;
             cin >> opponent_move;
-            cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+            // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
             board.perform_move((Move)opponent_move, not player_color);
-            print_board(board); // Print board after opponent's move
+            // print_board(board); // Print board after opponent's move
         }
         else {
             cin >> opponent_move;
-            cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+            // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
             board.perform_move((Move)opponent_move, not player_color);
-            print_board(board); // Print board after opponent's move
-            const auto result = alpha_beta_search(board, depth, player_color); 
+            // print_board(board); // Print board after opponent's move
+            clock_t start_time = clock();
+            const auto result = alpha_beta_search(board, depth_play, player_color);
             cout << result.first << "\n" << flush;
             board.perform_move(result.first, player_color);
+            elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
+            time_count -= elapsed_time;
         }
     }
 }
