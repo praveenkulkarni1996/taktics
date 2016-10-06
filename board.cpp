@@ -54,6 +54,25 @@ int Board::evaluate_tops(const bool player_color) const {
     return score;
 }
 
+int Board::evaluate_central_control(const bool player_color) const {
+    int CENTRE_WEIGHTS[5];
+    // weights designed to be Gaussian and small
+    CENTRE_WEIGHTS[0] = 40;
+    CENTRE_WEIGHTS[1] = 35;
+    CENTRE_WEIGHTS[2] = 24;
+    CENTRE_WEIGHTS[3] = 12;
+    CENTRE_WEIGHTS[4] = 5;
+
+    int n0 = (int)(white(2,2) && player_color);
+    int n1 = (int)(white(2,1) && player_color) + (int)(white(1,2) && player_color) + (int)(white(2,3) && player_color) + (int)(white(3,2) && player_color);
+    int n2 = (int)(white(2,0) && player_color) + (int)(white(1,1) && player_color) + (int)(white(0,2) && player_color) + (int)(white(1,3) && player_color) + (int)(white(2,4) && player_color) + (int)(white(3,3) && player_color) + (int)(white(4,2) && player_color) + (int)(white(3,1) && player_color);
+    int n3 = (int)(white(1,0) && player_color) + (int)(white(0,1) && player_color) + (int)(white(0,3) && player_color) + (int)(white(3,0) && player_color) + (int)(white(3,4) && player_color) + (int)(white(4,3) && player_color) + (int)(white(1,4) && player_color) + (int)(white(4,1) && player_color);
+    int n4 = (int)(white(0,0) && player_color) + (int)(white(0,4) && player_color) + (int)(white(4,0) && player_color) + (int)(white(4,4) && player_color);
+
+    int score = CENTRE_WEIGHTS[0] * n0 + CENTRE_WEIGHTS[1] * n1 + CENTRE_WEIGHTS[2] * n2 + CENTRE_WEIGHTS[3] * n3 + CENTRE_WEIGHTS[4] * n4;
+    return score;
+}
+
 bool Board::perform_placement(Move move, bool white) {
     const pair<int, int> xy = make_xy(move[1], move[2]);
     const int x = xy.first;
@@ -183,9 +202,10 @@ int Board::evaluate(bool player_color) {
 }
 
 int Board::evaluate_helper(bool player_color) {
-    return evaluate_captives(player_color) 
-            + evaluate_tops(player_color) 
-            + evaluate_components(player_color);
+    return evaluate_captives(player_color)
+            + evaluate_tops(player_color)
+            + evaluate_components(player_color)
+            + evaluate_central_control(player_color);
 }
 
 bool Board::perform_move(const Move &move, bool white) {
@@ -269,9 +289,9 @@ bool Board::player_flat_win(const bool player_color) const {
             else assert(empty(x, y));
         }
     }
-    if(black_squares != white_squares) 
+    if(black_squares != white_squares)
         return ((black_squares < white_squares) == player_color);
-    else if(black_flats_rem != white_flats_rem) 
+    else if(black_flats_rem != white_flats_rem)
         return ((black_flats_rem < white_flats_rem) == player_color);
     else
         return true;
@@ -290,8 +310,8 @@ string Board::board_to_string() const {
                     case BLACK_FLAT:
                     case BLACK_CRUSH: s += 'x'; break;
                     case BLACK_CAP: s += 'y'; break;
-                    case BLACK_WALL: s += 'z'; break; 
-                }   
+                    case BLACK_WALL: s += 'z'; break;
+                }
             }
             s += 'p';
         }
@@ -332,4 +352,3 @@ int Board::evaluate_components(const bool player_color) const {
     }
     return score;
 }
-

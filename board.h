@@ -21,6 +21,7 @@ class Board {
 
     int evaluate_captives(const bool player_color) const;
     int evaluate_tops(const bool player_color) const;
+    int evaluate_central_control(const bool player_color) const;
 
     /* perform the two types of moves */
     bool perform_placement(Move move, bool white);
@@ -115,4 +116,3 @@ public:
     void dfs(const int x, const int y, LRUD &lrud, const bool player_color) const;
     int evaluate_components(const bool player_color) const;
 };
-
