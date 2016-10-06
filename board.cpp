@@ -55,13 +55,8 @@ int Board::evaluate_tops(const bool player_color) const {
 }
 
 int Board::evaluate_central_control(const bool player_color) const {
-    int CENTRE_WEIGHTS[5];
     // weights designed to be Gaussian and small
-    CENTRE_WEIGHTS[0] = 40;
-    CENTRE_WEIGHTS[1] = 35;
-    CENTRE_WEIGHTS[2] = 24;
-    CENTRE_WEIGHTS[3] = 12;
-    CENTRE_WEIGHTS[4] = 5;
+    const int CENTRE_WEIGHTS[] = {40, 35, 24, 12, 5};
 
     int n0 = (int)(white(2,2) && player_color);
     int n1 = (int)(white(2,1) && player_color) + (int)(white(1,2) && player_color) + (int)(white(2,3) && player_color) + (int)(white(3,2) && player_color);
@@ -198,7 +193,7 @@ void Board::undo_motion(Move move, bool white, bool uncrush) {
 }
 
 int Board::evaluate(bool player_color) {
-    return evaluate_helper(player_color) - evaluate_helper(not player_color);
+    return evaluate_helper(player_color) - 2 * evaluate_helper(not player_color);
 }
 
 int Board::evaluate_helper(bool player_color) {
@@ -339,7 +334,8 @@ void Board::dfs(const int x, const int y, LRUD &lrud, const bool player_color) c
 
 int Board::evaluate_components(const bool player_color) const {
     memset(visit, false, sizeof(visit));
-    const int WEIGHTS[] = {0, 40, 200, 800, 5000};
+    const int WEIGHTS[] = {0, 350, 2000, 10000, INT_MAX/2};
+    // const int SMALL_WEIGHT = 50;
     int score = 0;
     for(int x = 0; x < N; ++x) {
         for(int y = 0; y < N; ++y) {

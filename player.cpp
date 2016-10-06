@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <cstdint>
-#include <climits>
 #include <cassert>
 #include <ctime>
 #include "board.h"
@@ -167,6 +166,12 @@ const pair<Move, int> max_value(Board &board, int alpha, int beta, const int cut
         order.push_back(make_pair(value, move));
     }
     sort(order.rbegin(), order.rend());
+    // cerr << "Max" << endl;
+    // cerr << order[0].second << " " << order[0].first << endl;
+    // cerr << order[1].second << " " << order[1].first << endl;
+    // cerr << order[2].second << " " << order[2].first << endl;
+    // cerr << order[3].second << " " << order[3].first << endl;
+    // cerr << "End" << endl;
     for(const auto &order_pair : order) {
         const auto move = order_pair.second;
         const bool did_crush = board.perform_move(move, player_color);
@@ -214,6 +219,12 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
         order.push_back(make_pair(value, move));
     }
     sort(order.begin(), order.end());
+    // cerr << "Min" << endl;
+    // cerr << order[0].second << " " << order[0].first << endl;
+    // cerr << order[1].second << " " << order[1].first << endl;
+    // cerr << order[2].second << " " << order[2].first << endl;
+    // cerr << order[3].second << " " << order[3].first << endl;
+    // cerr << "End" << endl;
     // for(const auto &move : moves) {
     for(const auto &order_pair : order) {
         const auto move = order_pair.second;
@@ -236,6 +247,31 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
 
 
 int main() {
+    // testing
+    // vector<Move> moves;
+    // Board board;
+    //
+    // board.board[2][2].push_back(WHITE_FLAT);
+    // board.board[0][0].push_back(BLACK_FLAT);
+    // board.board[2][3].push_back(WHITE_FLAT);
+    // board.board[0][2].push_back(BLACK_FLAT);
+    // board.board[1][3].push_back(WHITE_FLAT);
+    // board.board[0][1].push_back(BLACK_FLAT);
+    // board.board[2][1].push_back(WHITE_FLAT);
+    // board.board[0][4].push_back(BLACK_FLAT);
+    // // board.board[0][3].push_back(WHITE_FLAT);
+    // board.board[1][2].push_back(WHITE_FLAT);
+    // // cerr << board.evaluate(true) << endl;
+    // //
+    // print_board(board);
+    // auto result = min_value(board, 0, 0, 2, true);
+    // cerr << "Move: " << result.first <<endl;
+    // cerr << "value: " << result.second << endl;
+    //
+    // // end testing
+
+    // -----------------------------------------------------------------
+
     vector<Move> moves;
     Board board;
     min_table.reserve((int)1e8);
@@ -248,7 +284,7 @@ int main() {
     int time_count = time_limit;
     bool player_color = (player_number == 1);
 
-    string first_move = "Fa2";
+    string first_move = "Fa1";
     // First move
     if (player_color) {
         board.perform_move((Move)first_move, not player_color); // place opponent piece
@@ -263,26 +299,26 @@ int main() {
         cin >> opponent_move;
         board.perform_move((Move)opponent_move, player_color);
         // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-        if(opponent_move == first_move) first_move = "Fc3";
+        if(opponent_move == first_move) first_move = "Fe1";
         board.perform_move((Move)first_move, not player_color);
         cout << first_move << "\n" << flush;
     }
 
     // Main game
-    int depth = 5;
-    int depth_constrained = 3;
+    int depth = 4;
+    int depth_constrained = 4;
     int depth_play;
-    int time_constained = 60;
+    int time_constrained = 60;
     int elapsed_time;
 
     while (true) {
-        if(time_count < 60) {
+        if(time_count < time_constrained) {
             depth_play = depth_constrained;
         }
         else {
             depth_play = depth;
         }
-        cerr << depth_play << endl;
+        // cerr << depth_play << endl;
 
         if(player_color) {
             clock_t start_time = clock();
