@@ -68,6 +68,35 @@ int Board::evaluate_central_control(const bool player_color) const {
     return score;
 }
 
+bool visit[N][N];
+int Board::evaluate_components(const bool player_color) const {
+    memset(visit, false, sizeof(visit));
+    const int WEIGHTS[] = {0, 400, 4000, 40000, 400000};
+    // const int SMALL_WEIGHT = 50;
+    int score = 0;
+    for(int x = 0; x < N; ++x) {
+        for(int y = 0; y < N; ++y) {
+            if((not visit[x][y]) and (not empty(x, y)) and (white(x, y) == player_color)) {
+                LRUD lrud = {x, x, y, y};
+                dfs(x, y, lrud, player_color);
+                score += (WEIGHTS[lrud.r - lrud.l] + WEIGHTS[lrud.u - lrud.d]);
+            }
+        }
+    }
+    return score;
+}
+
+int Board::evaluate_helper(const bool player_color) const {
+    return evaluate_captives(player_color)
+           + evaluate_tops(player_color)
+           + evaluate_components(player_color)
+           + evaluate_central_control(player_color);
+}
+
+int Board::evaluate(const bool player_color) const {
+    return evaluate_helper(player_color) - evaluate_helper(not player_color);
+}
+
 bool Board::perform_placement(Move move, bool white) {
     const pair<int, int> xy = make_xy(move[1], move[2]);
     const int x = xy.first;
@@ -192,23 +221,13 @@ void Board::undo_motion(Move move, bool white, bool uncrush) {
     assert(this->white(x0, y0) == white);
 }
 
-int Board::evaluate(bool player_color) {
-    return evaluate_helper(player_color) - 2 * evaluate_helper(not player_color);
-}
-
-int Board::evaluate_helper(bool player_color) {
-    return evaluate_captives(player_color)
-            + evaluate_tops(player_color)
-            + evaluate_components(player_color)
-            + evaluate_central_control(player_color);
-}
-
 bool Board::perform_move(const Move &move, bool white) {
     if(move[0] == 'F' || move[0] == 'S' || move[0] == 'C')
         return perform_placement(move, white);
     else
         return perform_motion(move, white);
 }
+
 void Board::undo_move(const Move &move, bool white, bool uncrush) {
     if(move[0] == 'F' || move[0] == 'S' || move[0] == 'C') {
         assert(uncrush == false);
@@ -314,8 +333,6 @@ string Board::board_to_string() const {
     return s;
 }
 
-bool visit[N][N];
-
 void Board::dfs(const int x, const int y, LRUD &lrud, const bool player_color) const {
     visit[x][y] = true;
     lrud.l = min(lrud.l, x);
@@ -330,21 +347,4 @@ void Board::dfs(const int x, const int y, LRUD &lrud, const bool player_color) c
             dfs(xp, yp, lrud, player_color);
         }
     }
-}
-
-int Board::evaluate_components(const bool player_color) const {
-    memset(visit, false, sizeof(visit));
-    const int WEIGHTS[] = {0, 350, 2000, 10000, INT_MAX/2};
-    // const int SMALL_WEIGHT = 50;
-    int score = 0;
-    for(int x = 0; x < N; ++x) {
-        for(int y = 0; y < N; ++y) {
-            if((not visit[x][y]) and (not empty(x, y)) and (white(x, y) == player_color)) {
-                LRUD lrud = {x, x, y, y};
-                dfs(x, y, lrud, player_color);
-                score += (WEIGHTS[lrud.r - lrud.l] + WEIGHTS[lrud.u - lrud.d]);
-            }
-        }
-    }
-    return score;
 }

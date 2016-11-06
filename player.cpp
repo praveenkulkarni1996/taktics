@@ -247,102 +247,103 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
 
 
 int main() {
-    // testing
-    // vector<Move> moves;
-    // Board board;
-    //
-    // board.board[2][2].push_back(WHITE_FLAT);
-    // board.board[0][0].push_back(BLACK_FLAT);
-    // board.board[2][3].push_back(WHITE_FLAT);
-    // board.board[0][2].push_back(BLACK_FLAT);
-    // board.board[1][3].push_back(WHITE_FLAT);
-    // board.board[0][1].push_back(BLACK_FLAT);
-    // board.board[2][1].push_back(WHITE_FLAT);
-    // board.board[0][4].push_back(BLACK_FLAT);
-    // // board.board[0][3].push_back(WHITE_FLAT);
-    // board.board[1][2].push_back(WHITE_FLAT);
-    // // cerr << board.evaluate(true) << endl;
-    // //
-    // print_board(board);
-    // auto result = min_value(board, 0, 0, 2, true);
-    // cerr << "Move: " << result.first <<endl;
-    // cerr << "value: " << result.second << endl;
-    //
-    // // end testing
+     // testing
+     vector<Move> moves;
+     Board board;
+
+     board.board[2][0].push_back(WHITE_FLAT);
+    //  board.board[2][1].push_back(WHITE_FLAT);
+    //  board.board[2][2].push_back(WHITE_FLAT);
+    //  board.board[3][2].push_back(WHITE_FLAT);
+    //  board.board[3][3].push_back(WHITE_FLAT);
+    //  board.board[2][4].push_back(WHITE_FLAT);
+
+    //  board.board[2][2].push_back(BLACK_FLAT);
+
+    cerr << board.evaluate_components(true) << endl;
+    cerr << board.evaluate(true) << endl;
+    print_board(board);
+
+
+     auto result = alpha_beta_search(board, 1, true);
+     cerr << "Move: " << result.first <<endl;
+     cerr << "value: " << result.second << endl;
+
+     // end testing
 
     // -----------------------------------------------------------------
 
-    vector<Move> moves;
-    Board board;
-    min_table.reserve((int)1e8);
-    max_table.reserve((int)1e8);
-    int player_number;
-    int board_size;
-    int time_limit;
-    string opponent_move;
-    cin >> player_number >> board_size >> time_limit;
-    int time_count = time_limit;
-    bool player_color = (player_number == 1);
-
-    string first_move = "Fa1";
-    // First move
-    if (player_color) {
-        board.perform_move((Move)first_move, not player_color); // place opponent piece
-        cout << first_move << "\n" << flush;
-        // print_board(board);
-        cin >> opponent_move;
-        board.perform_move((Move)opponent_move, player_color); // opponent moves my piece
-        // print_board(board); // Print board after opponent's move
-        // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-    }
-    else {
-        cin >> opponent_move;
-        board.perform_move((Move)opponent_move, player_color);
-        // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-        if(opponent_move == first_move) first_move = "Fe1";
-        board.perform_move((Move)first_move, not player_color);
-        cout << first_move << "\n" << flush;
-    }
-
-    // Main game
-    int depth = 4;
-    int depth_constrained = 4;
-    int depth_play;
-    int time_constrained = 60;
-    int elapsed_time;
-
-    while (true) {
-        if(time_count < time_constrained) {
-            depth_play = depth_constrained;
-        }
-        else {
-            depth_play = depth;
-        }
-        // cerr << depth_play << endl;
-
-        if(player_color) {
-            clock_t start_time = clock();
-            const auto result = alpha_beta_search(board, depth_play, player_color);
-            cout << result.first << "\n" << flush;
-            board.perform_move(result.first, player_color);
-            elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
-            time_count -= elapsed_time;
-            cin >> opponent_move;
-            // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-            board.perform_move((Move)opponent_move, not player_color);
-            // print_board(board); // Print board after opponent's move
-        }
-        else {
-            cin >> opponent_move;
-            // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
-            board.perform_move((Move)opponent_move, not player_color);
-            // print_board(board); // Print board after opponent's move
-            clock_t start_time = clock();
-            const auto result = alpha_beta_search(board, depth_play, player_color);
-            cout << result.first << "\n" << flush;
-            board.perform_move(result.first, player_color);
-            elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
-            time_count -= elapsed_time;
-        }
-    }
+//    vector<Move> moves;
+//    Board board;
+//    min_table.reserve((int)1e8);
+//    max_table.reserve((int)1e8);
+//    int player_number;
+//    int board_size;
+//    int time_limit;
+//    string opponent_move;
+//    cin >> player_number >> board_size >> time_limit;
+//    int time_count = time_limit;
+//    bool player_color = (player_number == 1);
+//
+//    string first_move = "Fa1";
+//    // First move
+//    if (player_color) {
+//        board.perform_move((Move)first_move, not player_color); // place opponent piece
+//        cout << first_move << "\n" << flush;
+//        // print_board(board);
+//        cin >> opponent_move;
+//        board.perform_move((Move)opponent_move, player_color); // opponent moves my piece
+//        // print_board(board); // Print board after opponent's move
+//        // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+//    }
+//    else {
+//        cin >> opponent_move;
+//        board.perform_move((Move)opponent_move, player_color);
+//        // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+//        if(opponent_move == first_move) first_move = "Fe1";
+//        board.perform_move((Move)first_move, not player_color);
+//        cout << first_move << "\n" << flush;
+//    }
+//
+//    // Main game
+//    int depth = 4;
+//    int depth_constrained = 4;
+//    int depth_play;
+//    int time_constrained = 60;
+//    int elapsed_time;
+//
+//    while (true) {
+//        if(time_count < time_constrained) {
+//            depth_play = depth_constrained;
+//        }
+//        else {
+//            depth_play = depth;
+//        }
+//        // cerr << depth_play << endl;
+//
+//        if(player_color) {
+//            clock_t start_time = clock();
+//            const auto result = alpha_beta_search(board, depth_play, player_color);
+//            cout << result.first << "\n" << flush;
+//            board.perform_move(result.first, player_color);
+//            elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
+//            time_count -= elapsed_time;
+//            cin >> opponent_move;
+//            // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+//            board.perform_move((Move)opponent_move, not player_color);
+//            // print_board(board); // Print board after opponent's move
+//        }
+//        else {
+//            cin >> opponent_move;
+//            // cerr << "Opponent moved: *" << opponent_move << "*" << endl;
+//            board.perform_move((Move)opponent_move, not player_color);
+//            // print_board(board); // Print board after opponent's move
+//            clock_t start_time = clock();
+//            const auto result = alpha_beta_search(board, depth_play, player_color);
+//            cout << result.first << "\n" << flush;
+//            board.perform_move(result.first, player_color);
+//            elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
+//            time_count -= elapsed_time;
+//        }
+//    }
 }

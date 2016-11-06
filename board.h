@@ -48,8 +48,8 @@ public:
     void undo_move(const Move &move, bool white, bool uncrush);
 
     /* evaluates the move */
-    int evaluate(bool player_color);
-    int evaluate_helper(bool player_color);
+    int evaluate(const bool player_color) const;
+    int evaluate_helper(const bool player_color) const;
 
     bool empty(int x, int y) const {
         assert(0 <= x and x < N);
