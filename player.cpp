@@ -154,57 +154,36 @@ const pair<Move, int> max_value(Board &board, int alpha, int beta, const int cut
         if(other_win) return make_pair("", INT_MIN);
     }
     if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
+
+    /* iterative deepening code */
     int value = INT_MIN;
     Move optimal_move;
     vector<Move> moves;
-    // cout << "max generate_moves\n";
     generate_moves(board, moves, player_color);
-    // cout << "max end generate_moves\n";
-    for(auto &move : moves) {
+    vector<pair<int, Move> > order;
+    for(const auto &move : moves) {
         const bool did_crush = board.perform_move(move, player_color);
-        auto adversary_actions = min_value(board, alpha, beta, cutoff-1, player_color);
-        int move_min_value = adversary_actions.second;
+        const int value = min_value(board, alpha, beta, cutoff-3, player_color).second;
+        board.undo_move(move, player_color, did_crush);
+        order.push_back(make_pair(value, move));
+    }
+    /* sorts them according to order */
+    sort(order.rbegin(), order.rend());
+    /* main alpha beta code */
+    for(const auto &order_pair : order) {
+        const auto move = order_pair.second;
+        const bool did_crush = board.perform_move(move, player_color);
+        int move_min_value = min_value(board, alpha, beta, cutoff-1, player_color).second;
         if(value < move_min_value) {
-            value = move_min_value;
-            optimal_move = move;
+          value = move_min_value;
+          optimal_move = move;
         }
         board.undo_move(move, player_color, did_crush);
-        if(value >= beta) {
-            return make_pair(move, value);
-        }
+        if(value >= beta) return make_pair(move, value);
         alpha = max(alpha, value);
     }
     pair<Move, int> move_pair = make_pair(optimal_move, value);
-    max_table.insert(make_pair(hash_string, make_pair(move_pair, cutoff)));
     return move_pair;
-    // vector<pair<int, Move> > order;
-    // for(const auto &move : moves) {
-    //     const bool did_crush = board.perform_move(move, player_color);
-    //     const int value = min_value(board, alpha, beta, cutoff-3, player_color).second;
-    //     board.undo_move(move, player_color, did_crush);
-    //     order.push_back(make_pair(value, move));
-    // }
-    // sort(order.rbegin(), order.rend());
-    // cerr << "Max" << endl;
-    // cerr << order[0].second << " " << order[0].first << endl;
-    // cerr << order[1].second << " " << order[1].first << endl;
-    // cerr << order[2].second << " " << order[2].first << endl;
-    // cerr << order[3].second << " " << order[3].first << endl;
-//     // cerr << "End" << endl;
-//     for(const auto &order_pair : order) {
-//         const auto move = order_pair.second;
-//         const bool did_crush = board.perform_move(move, player_color);
-//         int move_min_value = min_value(board, alpha, beta, cutoff-1, player_color).second;
-//         if(value < move_min_value) {
-//           value = move_min_value;
-//           optimal_move = move;
-//         }
-//         board.undo_move(move, player_color, did_crush);
-//         if(value >= beta) return make_pair(move, value);
-//         alpha = max(alpha, value);
-//     }
-//     pair<Move, int> move_pair = make_pair(optimal_move, value);
-//     return move_pair;
 }
 
 const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cutoff, const bool player_color) {
@@ -216,7 +195,7 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
             return memo.first;
         }
     }
-    // cout << player_color << "\n";
+    /* has the other player won the game */
     if(board.player_road_win(player_color)) return make_pair("", INT_MAX);
     if(board.player_road_win(not player_color)) return make_pair("", INT_MIN);
     if(board.game_flat_win()) {
@@ -225,30 +204,23 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
         if(player_win) return make_pair("", INT_MAX);
         if(other_win) return make_pair("", INT_MIN);
     }
-    // if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
+    if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
+    /* iterative deepening code*/
     int value = INT_MAX;
     Move optimal_move;
     vector<Move> moves;
-    // cout << "min generate_moves: " << cutoff << "\n";
     generate_moves(board, moves, not player_color);
-    // cout << "min end generate_moves\n";
-    // vector<pair<int, Move> > order;
-    // for(const auto &move : moves) {
-    //     const bool did_crush = board.perform_move(move, player_color);
-    //     const int value = max_value(board, alpha, beta, cutoff-3, player_color).second;
-    //     board.undo_move(move, player_color, did_crush);
-    //     order.push_back(make_pair(value, move));
-    // }
-    // sort(order.begin(), order.end());
-    // // cerr << "Min" << endl;
-    // cerr << order[0].second << " " << order[0].first << endl;
-    // cerr << order[1].second << " " << order[1].first << endl;
-    // cerr << order[2].second << " " << order[2].first << endl;
-    // cerr << order[3].second << " " << order[3].first << endl;
-    // cerr << "End" << endl;
+    vector<pair<int, Move> > order;
     for(const auto &move : moves) {
-    // for(const auto &order_pair : order) {
-    //     const auto move = order_pair.second;
+        const bool did_crush = board.perform_move(move, not player_color);
+        const int value = max_value(board, alpha, beta, cutoff-3, player_color).second;
+        board.undo_move(move, not player_color, did_crush);
+        order.push_back(make_pair(value, move));
+    }
+    sort(order.begin(), order.end());
+    /* main alpha beta */
+    for(const auto &order_pair : order) {
+        const auto move = order_pair.second;
         const bool did_crush = board.perform_move(move, not player_color);
         int move_max_value = max_value(board, alpha, beta, cutoff-1, player_color).second;
         if(value > move_max_value) {
@@ -328,7 +300,7 @@ int main() {
    }
 
    // Main game
-   int depth = 4;
+   int depth = 5;
    int depth_constrained = 4;
    int depth_play;
    int time_constrained = 60;
