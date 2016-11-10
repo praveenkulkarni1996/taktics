@@ -3,30 +3,11 @@
  * This is functional more than object oriented
  * bitboard_t = int64
  */
-#include <cstdint>
-#include "bitboard.h"
-
+#include "evaluate.h"
 
 // const uint64_t MAX_EVAL = 1 << 30;
 // const uint64_t MIN_EVAL = -(1 << 30);
 const int ENDGAME_CUTOFF = 7;
-
-struct Weights {
-    int TopFlat;
-    int EndGameFlat;
-    int Standing;
-    int Capstone;
-
-    int Groups[8];
-    int GroupLiberties;
-
-    int Center;
-
-    Weights() {
-        TopFlat = 100;
-        EndGameFlat = 10;
-    }
-};
 
 inline bitboard_t make_bitboard(const Board &board) {
     /* TODO: test this function */
@@ -56,6 +37,10 @@ inline bitboard_t make_bitboard(const Board &board) {
 // 	// }
 // 	return 0;
 // }
+/* divides them into groups */
+
+
+
 
 uint64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c, bool player_color) {
     /* player color is the color of the player who has to make a move next */
@@ -72,25 +57,34 @@ uint64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c,
     else                score -= (flat / 2) + 50;
 
     /* scoring the naive board position */
-    score += int64(popcount(bb.white&(~(bb.caps|bb.standing))) * flat);
-	score -= int64(popcount(bb.black&(~(bb.caps|bb.standing))) * flat);
-	score += int64(popcount(bb.white&bb.standing) * w.Standing);
-	score -= int64(popcount(bb.black&bb.standing) * w.Standing);
-	score += int64(popcount(bb.white&bb.caps) * w.Capstone);
-	score -= int64(popcount(bb.black&bb.caps) * w.Capstone);
+    score += popcount(bb.white&(~(bb.caps|bb.standing))) * flat;
+	score -= popcount(bb.black&(~(bb.caps|bb.standing))) * flat;
+	score += popcount(bb.white&bb.standing) * w.Standing;
+	score -= popcount(bb.black&bb.standing) * w.Standing;
+	score += popcount(bb.white&bb.caps) * w.Capstone;
+	score -= popcount(bb.black&bb.caps) * w.Capstone;
 
     /* scoring centre control */
-    score += int64(popcount(bb.white&~c.edge) * w.Center);
-    score -= int64(popcount(bb.black&~c.edge) * w.Center);
+    score += popcount(bb.white&~c.edge) * w.Center;
+    score -= popcount(bb.black&~c.edge) * w.Center;
+
+    /* scoring groups */
+    vector<uint64_t> white_groups, black_groups;
+    analyze(c, bb, white_groups, black_groups);
+    score += score_groups(c, white_groups, w, bb.black|bb.standing);
+	score -= score_groups(c, black_groups, w, bb.white|bb.standing);
 
     return score;
 }
 
-uint64_t score_groups(const const_bitboard &c, const Weights ws, vector<uint64_t> gs, uint64_t other) {
-    /* scores the groups */
+/* scores the groups */
+uint64_t score_groups(const const_bitboard &c,
+        const vector<uint64_t> &gs,
+        const Weights &ws,
+        uint64_t other) {
     uint64_t allg = 0;
     uint64_t sc = 0;
-    for(uint64_t &g : gs) {
+    for(const uint64_t &g : gs) {
         pair<int, int> wh = dimensions(c, g);
         int w = wh.first, h = wh.second;
         sc += ws.Groups[w];
@@ -101,7 +95,6 @@ uint64_t score_groups(const const_bitboard &c, const Weights ws, vector<uint64_t
 		int libs = popcount(grow(c, ~other, allg) & (~allg));
 		sc += libs * ws.GroupLiberties;
 	}
-
 	return sc;
 }
 

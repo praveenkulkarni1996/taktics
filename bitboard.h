@@ -49,7 +49,6 @@ inline uint64_t grow(const const_bitboard &c, const uint64_t within, const uint6
     return next & within;
 }
 
-
 uint64_t flood(const const_bitboard &c, uint64_t within, uint64_t seed) {
     while(true) {
         uint64_t next = grow(c, within, seed);
@@ -60,10 +59,10 @@ uint64_t flood(const const_bitboard &c, uint64_t within, uint64_t seed) {
     }
 }
 
+/* this updates out */
 void flood_groups(const const_bitboard &c, uint64_t bits, vector<uint64_t> &out) {
-    /* this updates out */
     uint64_t seen = 0;
-    for(;bits != 0; ) {
+    while(bits != 0) {
         uint64_t next = bits & (bits - 1);
         uint64_t bit = bits & (~next);
         if((seen & bit) == 0) {
@@ -75,6 +74,16 @@ void flood_groups(const const_bitboard &c, uint64_t bits, vector<uint64_t> &out)
         }
         bits = next;
     }
+}
+
+void analyze(const const_bitboard &c,
+        const bitboard_t &bb,
+        vector<uint64_t> &white_groups,
+        vector<uint64_t> &black_groups) {
+    uint64_t white_roads = bb.white & ~bb.standing;
+    uint64_t black_roads = bb.black & ~bb.standing;
+    flood_groups(c, white_roads, white_groups);
+    flood_groups(c, black_roads, black_groups);
 }
 
 pair<int, int> dimensions(const const_bitboard &c, uint64_t bits) {
