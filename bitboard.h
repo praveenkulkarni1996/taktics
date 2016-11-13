@@ -20,8 +20,9 @@ struct bitboard_t {
 const_bitboard precompute(const int size) {
     const_bitboard c;
     c.size = size;
-    for(int i = 0; i < size; ++i)
-    c.R |= 1LL << (i * size);
+    for(int i = 0; i < size; ++i) {
+        c.R |= 1LL << (i * size);
+    }
     c.L = c.R << (size - 1LL);
     c.T = ((1LL << size) - 1LL) << (size * (size - 1LL));
     c.B = (1LL << size) - 1;

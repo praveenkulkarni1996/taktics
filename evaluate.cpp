@@ -9,12 +9,6 @@
 // const uint64_t MIN_EVAL = -(1 << 30);
 const int ENDGAME_CUTOFF = 7;
 
-inline bitboard_t make_bitboard(const Board &board) {
-    /* TODO: test this function */
-    assert(board.white_flats_rem >= 0);
-    bitboard_t bitboard;
-    return bitboard;
-}
 //
 // inline bool check_gameover(uint64_t bitboard) {
 //     assert(bitboard >= 0);
@@ -74,7 +68,19 @@ uint64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c,
     score += score_groups(c, white_groups, w, bb.black|bb.standing);
 	score -= score_groups(c, black_groups, w, bb.white|bb.standing);
 
-    return score;
+    if (w.Liberties != 0) {
+        uint64_t wr = bb.white&~bb.standing;
+        uint64_t br = bb.black&~bb.standing;
+        uint64_t wl = popcount(grow(c, ~bb.black, wr) & (~bb.white));
+        uint64_t bl = popcount(grow(c, ~bb.white, br) & (~bb.black));
+        score += w.Liberties * wl;
+        score -= w.Liberties * bl;
+    }
+
+    // score += score_threats(c, w, bb);
+    // score += score_control(c, w, bb);
+
+    return (player_color) ? score : -score;
 }
 
 /* scores the groups */
@@ -97,7 +103,6 @@ uint64_t score_groups(const const_bitboard &c,
 	}
 	return sc;
 }
-
 
 int main() {
     /* code */
