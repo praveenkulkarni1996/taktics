@@ -37,6 +37,13 @@ const_bitboard precompute(const int size) {
 }
 
 inline int popcount(uint64_t x) {
+    int count = 0;
+    while(x > 0) {
+        count += (x&1);
+        x >>= 1;
+    }
+    return count;
+    /*
     if (x == 0) return 0;
     x -= (x >> 1) & 0x5555555555555555;
     x = (x>>2)&0x3333333333333333 + x&0x3333333333333333;
@@ -44,6 +51,7 @@ inline int popcount(uint64_t x) {
     x &= 0x0f0f0f0f0f0f0f0f;
     x *= 0x0101010101010101;
     return int(x >> 56);
+    */
 }
 
 inline uint64_t grow(const const_bitboard &c, const uint64_t within, const uint64_t seed) {
@@ -86,6 +94,8 @@ void analyze(const const_bitboard &c,
         const bitboard_t &bb,
         vector<uint64_t> &white_groups,
         vector<uint64_t> &black_groups) {
+    assert(white_groups.empty());
+    assert(black_groups.empty());
     uint64_t white_roads = bb.white & ~bb.standing;
     uint64_t black_roads = bb.black & ~bb.standing;
     flood_groups(c, white_roads, white_groups);

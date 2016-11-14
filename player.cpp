@@ -254,7 +254,8 @@ int main() {
     board.board[2][2].push_back(WHITE_FLAT);
     // board.board[3][2].push_back(WHITE_FLAT);
     // board.board[3][3].push_back(WHITE_FLAT);
-    board.board[2][3].push_back(WHITE_FLAT);
+    board.board[2][4].push_back(WHITE_FLAT);
+    board.board[4][4].push_back(WHITE_FLAT);
 
     // board.board[2][2].push_back(BLACK_CAP);
 

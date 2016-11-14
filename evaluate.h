@@ -1,8 +1,9 @@
 #include <cstdint>
 #include "bitboard.h"
 
-typedef pair<uint64_t, uint64_t> pair64;
-typedef pair<pair64, pair64> quad64;
+typedef pair<int64_t, int64_t> ipair64; /* signed int64_t pair */
+typedef pair<uint64_t, uint64_t> upair64; /* unsigned uint64_t pair */
+typedef pair<ipair64, ipair64> iquad64; /* signed quadruple int64_t */
 typedef vector<uint64_t> vec64;
 typedef const const_bitboard cboard;
 
@@ -49,7 +50,7 @@ struct Weights {
         FlatControl = 50;
 
         Center = 40;
-        CenterControl =10;
+        CenterControl = 10;
     }
 };
 
@@ -113,17 +114,20 @@ uint64_t score_groups(const const_bitboard &c, const vector<uint64_t> &gs, const
 	return sc;
 }
 
-pair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t pieces, uint64_t empty) {
-    uint64_t place = 0, threat = 0;
+ipair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t pieces, uint64_t empty){
+    int64_t place = 0, threat = 0;
     uint64_t singles = pieces;
     for(uint64_t g: gs) {
         singles &= ~g;
     }
+    cout << "singles " << "\n";
+    print_bitmask(singles);
     for(int i = 0; i < gs.size(); ++i) {
         uint64_t g = gs[i];
         if((g & c.edge) == 0) continue;
         uint64_t pmap = 0, tmap = 0;
         uint64_t slides = grow(c, c.mask&~(p.standing|p.caps), pieces & ~g);
+        cout << "slides = \n"; print_bitmask(slides);
         if ((g&c.L) != 0) {
             pmap |= (g >> 1) & empty & c.R;
             tmap |= (g >> 1) & slides & c.R;
@@ -140,6 +144,7 @@ pair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t piece
             pmap |= (g << c.size) & empty & c.T;
             tmap |= (g << c.size) & slides & c.T;
         }
+        cout << "pmap\n"; print_bitmask(pmap);
         uint64_t s = singles;
         uint64_t j = 0;
         while(true) {
@@ -161,21 +166,21 @@ pair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t piece
                 continue;
             }
             uint64_t slides = grow(c, c.mask&~(p.standing|p.caps), pieces&~(g|other));
+            cout << "slides 2 " << "\n"; print_bitmask(slides);
             uint64_t isect = grow(c, c.mask, g) & grow(c, c.mask, other);
             pmap |= isect & empty;
             tmap |= isect & slides;
         }
+        printf("pmap\n\n\n\n"); print_bitmask(pmap);
+        cout << popcount(pmap);
         place += popcount(pmap);
         threat += popcount(tmap);
     }
-    printf("place = ");
-    print_bitmask(place);
-    printf("threat = \n");
-    print_bitmask(threat);
+    cout << "place = " << place << "\n";
     return make_pair(place, threat);
 }
 
-quad64 count_threats(const const_bitboard &c, const bitboard_t &p, vec64 &wgs, vec64 &bgs) {
+iquad64 count_threats(const const_bitboard &c, const bitboard_t &p, vec64 &wgs, vec64 &bgs) {
     uint64_t empty = c.mask & ~(p.white|p.black);
     auto wp_wt = count_one(c, p, wgs, p.white&~(p.standing|p.caps), empty);
     auto bp_bt = count_one(c, p, bgs, p.black&~(p.standing|p.caps), empty);
@@ -186,11 +191,16 @@ int64_t score_threats(cboard &c, const Weights &ws, bitboard_t &p, bool player_c
 	if (ws.Potential == 0 && ws.Threat == 0) {
 		return 0;
 	}
-	quad64 wp_wt_bp_bt = count_threats(c, p, wgs, bgs);
+	iquad64 wp_wt_bp_bt = count_threats(c, p, wgs, bgs);
     int64_t wp = wp_wt_bp_bt.first.first;
     int64_t wt = wp_wt_bp_bt.first.second;
     int64_t bp = wp_wt_bp_bt.second.first;
     int64_t bt = wp_wt_bp_bt.second.second;
+
+    cout << "wp = " << wp << endl;
+    cout << "wt = " << wt << endl;
+    cout << "bp = " << bp << endl;
+    cout << "bt = " << bt << endl;
 
 	if (wp+wt > 0 && player_color) {
 		return 1 << 20;
