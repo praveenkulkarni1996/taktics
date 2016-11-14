@@ -21,7 +21,7 @@ run: $(TARGET)
 
 test: $(CPPFILES)
 	g++ -std=c++11 -o $(TESTTARGET) $(CPPFILES)
-	./$(TESTTARGET)
+#	./$(TESTTARGET)
 
 
 clean:

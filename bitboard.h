@@ -15,6 +15,11 @@ struct bitboard_t {
     uint64_t black;
     uint64_t white_stones;
     uint64_t black_stones;
+
+    bitboard_t() {
+        standing = caps = white = black = 0;
+        white_stones = black_stones = 0;
+    }
 };
 
 const_bitboard precompute(const int size) {
