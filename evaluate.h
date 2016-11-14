@@ -97,11 +97,15 @@ inline void print_bitboard(bitboard_t &bitboard) {
 
 /* scores the groups */
 uint64_t score_groups(const const_bitboard &c, const vector<uint64_t> &gs, const Weights &ws, uint64_t other) {
+
+    printf("entered score groups\n");
+    print_bitmask(other);
     uint64_t allg = 0;
     uint64_t sc = 0;
     for(const uint64_t &g : gs) {
         pair<int, int> wh = dimensions(c, g);
         int w = wh.first, h = wh.second;
+        cout << "w = " << w << ", h = " << h << "\n";
         sc += ws.Groups[w];
         sc += ws.Groups[h];
         allg |= g;
@@ -249,11 +253,28 @@ int64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c, 
     cerr << "centered score = " << score << "\n";
 
     /* scoring groups */
+    score = 0;
     vector<uint64_t> white_groups, black_groups;
     analyze(c, bb, white_groups, black_groups);
+    print_bitmask(c.mask);
+    print_bitmask(c.L);
+    print_bitmask(c.R);
+    print_bitmask(c.B);
+    print_bitmask(c.T);
+    for(int i = 0; i < white_groups.size(); ++i) {
+        cout << "white groups " << i << "\n";
+        print_bitmask(white_groups[i]);
+    }
+    for(int i = 0; i < black_groups.size(); ++i) {
+        cout << "black groups " << i << "\n";
+        print_bitmask(black_groups[i]);
+    }
     score += score_groups(c, white_groups, w, bb.black|bb.standing);
 	score -= score_groups(c, black_groups, w, bb.white|bb.standing);
     cerr << "group score = " << score << "\n";
+
+    /* DEBUG */
+    return score;
 
     cout << "liberties = " << w.Liberties << "\n";
 
