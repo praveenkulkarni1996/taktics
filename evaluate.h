@@ -128,6 +128,8 @@ ipair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t piec
         uint64_t pmap = 0, tmap = 0;
         uint64_t slides = grow(c, c.mask&~(p.standing|p.caps), pieces & ~g);
         cout << "slides = \n"; print_bitmask(slides);
+        cout << "g = \n"; print_bitmask(g);
+        cout << "empty = \n"; print_bitmask(empty);
         if ((g&c.L) != 0) {
             pmap |= (g >> 1) & empty & c.R;
             tmap |= (g >> 1) & slides & c.R;

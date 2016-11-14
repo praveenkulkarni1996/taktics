@@ -6,6 +6,9 @@ struct const_bitboard {
     uint64_t L, R, T, B;
     uint64_t edge;
     uint64_t mask;
+    const_bitboard() {
+        L = R = T = B = edge = mask = 0;
+    }
 };
 
 struct bitboard_t {
