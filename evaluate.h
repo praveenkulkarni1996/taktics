@@ -63,7 +63,7 @@ const const_bitboard CBOARD = precompute(N);
 
 inline bitboard_t make_bitboard(const Board &board) {
     /* TODO: test this function */
-    const int N = 5;
+    // const int N = 5;
     // top to bottom, left to right
     bitboard_t bitboard;
     for(int y=N-1; y >= 0; --y) {
@@ -90,7 +90,7 @@ inline void print_bitmask(uint64_t mask) {
     int cnt = (N * N) - 1;
     for(int y=N-1; y >=0; --y) {
         for(int x = 0; x < N; ++x) {
-            printf("%llu", 1 & (mask >> cnt--));
+            cout << (1 & (mask >> cnt--));
         }   printf("\n");
     }
 }
@@ -274,7 +274,7 @@ int64_t evaluate(const Board &board, bool player_color) {
     /* white has an advantage */
     if(player_color)    score += (flat / 2) + 50;
     else                score -= (flat / 2) + 50;
-    cerr << "player score = " << score << "\n";
+    // cerr << "player score = " << score << "\n";
 
     /* scoring the naive board position */
     score += popcount(bb.white&(~(bb.caps|bb.standing))) * flat;
@@ -283,12 +283,12 @@ int64_t evaluate(const Board &board, bool player_color) {
 	score -= popcount(bb.black&bb.standing) * WEIGHTS.Standing;
 	score += popcount(bb.white&bb.caps) * WEIGHTS.Capstone;
 	score -= popcount(bb.black&bb.caps) * WEIGHTS.Capstone;
-    cerr << "naive score = " << score << "\n";
+    // cerr << "naive score = " << score << "\n";
 
     /* scoring centre control */
     score += popcount(bb.white&~CBOARD.edge) * WEIGHTS.Center;
     score -= popcount(bb.black&~CBOARD.edge) * WEIGHTS.Center;
-    cerr << "centered score = " << score << "\n";
+    // cerr << "centered score = " << score << "\n";
 
     /* scoring groups */
     vector<uint64_t> white_groups, black_groups;
@@ -296,7 +296,7 @@ int64_t evaluate(const Board &board, bool player_color) {
 
     score += score_groups(white_groups, bb.black|bb.standing);
 	score -= score_groups(black_groups, bb.white|bb.standing);
-    cerr << "group score = " << score << "\n";
+    // cerr << "group score = " << score << "\n";
 
     // if (WEIGHTS.Liberties != 0) {
     //     uint64_t wr = bb.white&~bb.standing;
@@ -308,11 +308,12 @@ int64_t evaluate(const Board &board, bool player_color) {
     // }
 
     score += score_threats(bb, player_color, white_groups, black_groups);
-    cout << "score threats = " << score << "\n";
+    // cout << "score threats = " << score << "\n";
     score += score_control(bb);
-    cout << "score control = " << score << "\n";
+    // cout << "score control = " << score << "\n";
 
-    cout << "final abs score = " << score << "\n";
-    cout << "final neg score = " << -score << "\n";
+    // cout << "final abs score = " << score << "\n";
+    // cout << "final neg score = " << -score << "\n";
     return score;
+    // return (player_color? score: -score);
 }

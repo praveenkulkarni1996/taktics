@@ -155,7 +155,14 @@ const pair<Move, int> max_value(Board &board, int alpha, int beta, const int cut
         if(player_win) return make_pair("", INT_MAX);
         if(other_win) return make_pair("", INT_MIN);
     }
-    if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
+    if(cutoff <= 0) {
+        if(player_color) {
+            return make_pair("", evaluate(board, player_color));
+        }
+        else {
+            return make_pair("", -evaluate(board, player_color));
+        }
+    }
 
     /* iterative deepening code */
     int value = INT_MIN;
@@ -206,7 +213,14 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
         if(player_win) return make_pair("", INT_MAX);
         if(other_win) return make_pair("", INT_MIN);
     }
-    if(cutoff <= 0) return make_pair("", board.evaluate(player_color));
+    if(cutoff <= 0) {
+        if(player_color) {
+            return make_pair("", evaluate(board, not player_color));
+        }
+        else {
+            return make_pair("", -evaluate(board, not player_color));
+        }
+    }
     /* iterative deepening code*/
     int value = INT_MAX;
     Move optimal_move;
@@ -239,15 +253,9 @@ const pair<Move, int> min_value(Board &board, int alpha, int beta, const int cut
     return move_pair;
 }
 
-
-
-
-int main() {
-    //  testing
+void test() {
     vector<Move> moves;
-    Weights wt;
     Board board;
-    const_bitboard metaboard = precompute(5);
 
     board.board[2][0].push_back(WHITE_FLAT);
     board.board[2][1].push_back(WHITE_FLAT);
@@ -259,18 +267,24 @@ int main() {
 
     // board.board[2][2].push_back(BLACK_CAP);
 
-    cerr << board.evaluate_components(true) << endl;
-    cerr << board.evaluate(true) << endl;
+    // cerr << board.evaluate_components(true) << endl;
+    // cerr << board.evaluate(true) << endl;
     print_board(board);
     bitboard_t bitboard = make_bitboard(board);
     print_bitboard(bitboard);
-    int64_t test = evaluate(board, true);
-    cerr << "testscore = " << test << "\n";
+    // int64_t test = evaluate(board, false);
+    // cerr << "testscore = " << test << "\n";
 
-    auto result = alpha_beta_search(board, 3, false);
+    auto result = alpha_beta_search(board, 6, false);
     cerr << "Move: " << result.first <<endl;
     cerr << "value: " << result.second << endl;
 
+}
+
+
+int main() {
+    //  testing
+    test();
     //  end testing
 
     // -----------------------------------------------------------------
@@ -306,8 +320,8 @@ int main() {
    //     board.perform_move((Move)first_move, not player_color);
    //     cout << first_move << "\n" << flush;
    // }
-
-   // Main game
+   //
+   // // Main game
    // int depth = 5;
    // int depth_constrained = 4;
    // int depth_play;
@@ -327,6 +341,7 @@ int main() {
    //         clock_t start_time = clock();
    //         const auto result = alpha_beta_search(board, depth_play, player_color);
    //         cout << result.first << "\n" << flush;
+   //         cerr << "Move value: " << result.second << endl << flush;
    //         board.perform_move(result.first, player_color);
    //         elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
    //         time_count -= elapsed_time;
@@ -343,6 +358,7 @@ int main() {
    //         clock_t start_time = clock();
    //         const auto result = alpha_beta_search(board, depth_play, player_color);
    //         cout << result.first << "\n" << flush;
+   //         cerr << "Move value: " << result.second << endl << flush;
    //         board.perform_move(result.first, player_color);
    //         elapsed_time = (int)(double(clock()-start_time) / (double)CLOCKS_PER_SEC);
    //         time_count -= elapsed_time;
