@@ -43,6 +43,9 @@ struct Weights {
         Groups[6] = 0;
         Groups[7] = 0;
 
+        GroupLiberties = 0;
+        Liberties = 0;
+
         Potential = 100;
         Threat = 300;
 
@@ -111,7 +114,8 @@ uint64_t score_groups(const const_bitboard &c, const vector<uint64_t> &gs, const
         allg |= g;
     }
     cerr << "sc = " << sc << "\n";
-	if (ws.GroupLiberties != 0) {
+	if(ws.GroupLiberties != 0) {
+        assert(false);
 		int libs = popcount(grow(c, ~other, allg) & (~allg));
 		sc += libs * ws.GroupLiberties;
 	}
