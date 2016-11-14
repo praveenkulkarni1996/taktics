@@ -264,8 +264,8 @@ int main() {
     print_board(board);
     bitboard_t bitboard = make_bitboard(board);
     print_bitboard(bitboard);
-    uint64_t test = evaluate(board, wt, metaboard, true);
-    cerr << test << "\n";
+    int64_t test = evaluate(board, true);
+    cerr << "testscore = " << test << "\n";
 
     auto result = alpha_beta_search(board, 3, false);
     cerr << "Move: " << result.first <<endl;

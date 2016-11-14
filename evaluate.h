@@ -29,6 +29,7 @@ struct Weights {
     int CenterControl;
 
     Weights() {
+        assert(N == 5);
         TopFlat = 400;
         EndGameFlat = 800;
         Standing = 200;
@@ -56,6 +57,9 @@ struct Weights {
         CenterControl = 10;
     }
 };
+
+const Weights WEIGHTS;
+const const_bitboard CBOARD = precompute(N);
 
 inline bitboard_t make_bitboard(const Board &board) {
     /* TODO: test this function */
@@ -99,62 +103,46 @@ inline void print_bitboard(bitboard_t &bitboard) {
 }
 
 /* scores the groups */
-uint64_t score_groups(const const_bitboard &c, const vector<uint64_t> &gs, const Weights &ws, uint64_t other) {
-
-    printf("entered score groups\n");
-    print_bitmask(other);
+uint64_t score_groups(const vec64 &gs, uint64_t other) {
     uint64_t allg = 0;
     uint64_t sc = 0;
     for(const uint64_t &g : gs) {
-        pair<int, int> wh = dimensions(c, g);
+        pair<int, int> wh = dimensions(CBOARD, g);
         int w = wh.first, h = wh.second;
-        cout << "w = " << w << ", h = " << h << "\n";
-        sc += ws.Groups[w];
-        sc += ws.Groups[h];
+        sc += WEIGHTS.Groups[w];
+        sc += WEIGHTS.Groups[h];
         allg |= g;
     }
-    cerr << "sc = " << sc << "\n";
-	if(ws.GroupLiberties != 0) {
-        assert(false);
-		int libs = popcount(grow(c, ~other, allg) & (~allg));
-		sc += libs * ws.GroupLiberties;
-	}
 	return sc;
 }
 
-ipair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t pieces, uint64_t empty){
+ipair64 count_one(const bitboard_t &p, const vec64 &gs, uint64_t pieces, uint64_t empty){
     int64_t place = 0, threat = 0;
     uint64_t singles = pieces;
     for(uint64_t g: gs) {
         singles &= ~g;
     }
-    cout << "singles " << "\n";
-    print_bitmask(singles);
     for(int i = 0; i < gs.size(); ++i) {
         uint64_t g = gs[i];
-        if((g & c.edge) == 0) continue;
+        if((g & CBOARD.edge) == 0) continue;
         uint64_t pmap = 0, tmap = 0;
-        uint64_t slides = grow(c, c.mask&~(p.standing|p.caps), pieces & ~g);
-        cout << "slides = \n"; print_bitmask(slides);
-        cout << "g = \n"; print_bitmask(g);
-        cout << "empty = \n"; print_bitmask(empty);
-        if ((g&c.L) != 0) {
-            pmap |= (g >> 1) & empty & c.R;
-            tmap |= (g >> 1) & slides & c.R;
+        uint64_t slides = grow(CBOARD, CBOARD.mask&~(p.standing|p.caps), pieces & ~g);
+        if ((g&CBOARD.L) != 0) {
+            pmap |= (g >> 1) & empty & CBOARD.R;
+            tmap |= (g >> 1) & slides & CBOARD.R;
         }
-        if ((g&c.R) != 0) {
-            pmap |= (g << 1) & empty & c.L;
-            tmap |= (g << 1) & slides & c.L;
+        if ((g&CBOARD.R) != 0) {
+            pmap |= (g << 1) & empty & CBOARD.L;
+            tmap |= (g << 1) & slides & CBOARD.L;
         }
-        if ((g&c.T) != 0) {
-            pmap |= (g >> c.size) & empty & c.B;
-            tmap |= (g >> c.size) & slides & c.B;
+        if ((g&CBOARD.T) != 0) {
+            pmap |= (g >> CBOARD.size) & empty & CBOARD.B;
+            tmap |= (g >> CBOARD.size) & slides & CBOARD.B;
         }
-        if ((g&c.B) != 0) {
-            pmap |= (g << c.size) & empty & c.T;
-            tmap |= (g << c.size) & slides & c.T;
+        if ((g&CBOARD.B) != 0) {
+            pmap |= (g << CBOARD.size) & empty & CBOARD.T;
+            tmap |= (g << CBOARD.size) & slides & CBOARD.T;
         }
-        cout << "pmap\n"; print_bitmask(pmap);
         uint64_t s = singles;
         uint64_t j = 0;
         while(true) {
@@ -169,48 +157,44 @@ ipair64 count_one(cboard &c, const bitboard_t &p, const vec64 &gs, uint64_t piec
             } else {
                 break;
             }
-            if (not (((g&c.L) != 0 && (other&c.R) != 0) ||
-                ((g&c.R) != 0 && (other&c.L) != 0) ||
-                ((g&c.B) != 0 && (other&c.T) != 0) ||
-                ((g&c.T) != 0 && (other&c.B) != 0))) {
+            if (not (((g&CBOARD.L) != 0 && (other&CBOARD.R) != 0) ||
+                ((g&CBOARD.R) != 0 && (other&CBOARD.L) != 0) ||
+                ((g&CBOARD.B) != 0 && (other&CBOARD.T) != 0) ||
+                ((g&CBOARD.T) != 0 && (other&CBOARD.B) != 0))) {
                 continue;
             }
-            uint64_t slides = grow(c, c.mask&~(p.standing|p.caps), pieces&~(g|other));
-            cout << "slides 2 " << "\n"; print_bitmask(slides);
-            uint64_t isect = grow(c, c.mask, g) & grow(c, c.mask, other);
+            uint64_t slides = grow(CBOARD, CBOARD.mask&~(p.standing|p.caps), pieces&~(g|other));
+            uint64_t isect = grow(CBOARD, CBOARD.mask, g) & grow(CBOARD, CBOARD.mask, other);
             pmap |= isect & empty;
             tmap |= isect & slides;
         }
-        printf("pmap\n\n\n\n"); print_bitmask(pmap);
-        cout << popcount(pmap);
         place += popcount(pmap);
         threat += popcount(tmap);
     }
-    cout << "place = " << place << "\n";
     return make_pair(place, threat);
 }
 
-iquad64 count_threats(const const_bitboard &c, const bitboard_t &p, vec64 &wgs, vec64 &bgs) {
-    uint64_t empty = c.mask & ~(p.white|p.black);
-    auto wp_wt = count_one(c, p, wgs, p.white&~(p.standing|p.caps), empty);
-    auto bp_bt = count_one(c, p, bgs, p.black&~(p.standing|p.caps), empty);
+iquad64 count_threats(const bitboard_t &p, vec64 &wgs, vec64 &bgs) {
+    uint64_t empty = CBOARD.mask & ~(p.white|p.black);
+    auto wp_wt = count_one(p, wgs, p.white&~(p.standing|p.caps), empty);
+    auto bp_bt = count_one(p, bgs, p.black&~(p.standing|p.caps), empty);
     return make_pair(wp_wt, bp_bt);
 }
 
-int64_t score_threats(cboard &c, const Weights &ws, bitboard_t &p, bool player_color, vec64 wgs, vec64 bgs) {
-	if (ws.Potential == 0 && ws.Threat == 0) {
+int64_t score_threats(bitboard_t &p, bool player_color, vec64 wgs, vec64 bgs) {
+	if (WEIGHTS.Potential == 0 && WEIGHTS.Threat == 0) {
 		return 0;
 	}
-	iquad64 wp_wt_bp_bt = count_threats(c, p, wgs, bgs);
+	iquad64 wp_wt_bp_bt = count_threats(p, wgs, bgs);
     int64_t wp = wp_wt_bp_bt.first.first;
     int64_t wt = wp_wt_bp_bt.first.second;
     int64_t bp = wp_wt_bp_bt.second.first;
     int64_t bt = wp_wt_bp_bt.second.second;
 
-    cout << "wp = " << wp << endl;
-    cout << "wt = " << wt << endl;
-    cout << "bp = " << bp << endl;
-    cout << "bt = " << bt << endl;
+    // cout << "wp = " << wp << endl;
+    // cout << "wt = " << wt << endl;
+    // cout << "bp = " << bp << endl;
+    // cout << "bt = " << bt << endl;
 
 	if (wp+wt > 0 && player_color) {
 		return 1 << 20;
@@ -218,12 +202,64 @@ int64_t score_threats(cboard &c, const Weights &ws, bitboard_t &p, bool player_c
 	if (bp+bt > 0 && not player_color) {
 		return -(1 << 20);
 	}
-	return (int64_t)((wp-bp)*ws.Potential) + (int64_t)((wt-bt)*ws.Threat);
+	return (int64_t)((wp-bp)*WEIGHTS.Potential) + (int64_t)((wt-bt)*WEIGHTS.Threat);
+}
+/**/
+void compute_influence(uint64_t mine, vector<uint64_t> &out) {
+    while(mine != 0) {
+        uint64_t next = mine&(mine - 1);
+        uint64_t bit = mine&~next;
+        mine = next;
+        uint64_t g = grow(CBOARD, CBOARD.mask, bit) & ~bit;
+        uint64_t carry = g;
+        for(int i = 0; carry != 0 and i < out.size(); ++i) {
+            uint64_t cout = out[i] & carry;
+            out[i] ^= carry;
+            carry = cout;
+        }
+        if(carry != 0) {
+            out[out.size() - 1] = carry;
+        }
+    }
 }
 
+upair64 compute_control(const bitboard_t &p) {
+    vector<uint64_t> wi(3, 0), bi(3, 0);
+    compute_influence(p.white &~(p.caps|p.standing), wi);
+    uint64_t bc = 0, wc = 0;
+    for(int i = wi.size() - 1; i >= 0; --i) {
+        uint64_t wb = wi[i] & ~(wc|bc);
+        uint64_t bb = bi[i] & ~(wc|bc);
+        wc |= (wb & ~bb);
+        bc |= (bb & ~wb);
+    }
+    uint64_t block = grow(CBOARD, CBOARD.mask, p.standing);
+    uint64_t wcap = grow(CBOARD, CBOARD.mask, p.caps&p.white);
+    uint64_t bcap = grow(CBOARD, CBOARD.mask, p.caps&p.black);
+    wc |= wcap & ~bcap;
+    bc |= bcap & ~wcap;
+    wc &= ~block;
+    bc &= ~block;
+    return make_pair(wc, bc);
+}
+
+int64_t score_control(const bitboard_t &p) {
+    if(WEIGHTS.EmptyControl == 0 and WEIGHTS.FlatControl == 0) return 0;
+    upair64 wc_bc = compute_control(p);
+    uint64_t wc = wc_bc.first;
+    uint64_t bc = wc_bc.second;
+	uint64_t empty = CBOARD.mask &~ (p.white | p.black);
+	uint64_t flat = (p.white | p.black) &~ (p.standing | p.caps);
+    int64_t s = 0;
+	s += int64(WEIGHTS.EmptyControl * (popcount(wc&empty) - popcount(bc&empty)));
+	s += int64(WEIGHTS.FlatControl * (popcount(wc&flat) - popcount(bc&flat)));
+	s += int64(WEIGHTS.CenterControl * (popcount(wc&~CBOARD.edge)- popcount(bc&~CBOARD.edge)));
+	return s;
+}
 
 /* The main evaluate function */
-int64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c, bool player_color) {
+int64_t evaluate(const Board &board, bool player_color) {
+
     /* player color is the color of the player who has to make a move next */
     bitboard_t bb = make_bitboard(board);
 
@@ -231,10 +267,8 @@ int64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c, 
     int64_t score = 0;
     int left = min(bb.white_stones, bb.black_stones);
     left = min(left, ENDGAME_CUTOFF);
-    cerr << "left = " << left << "\n";
-    uint64_t flat = w.TopFlat + ((ENDGAME_CUTOFF - left) * w.EndGameFlat / ENDGAME_CUTOFF);
-
-    cerr << "flat = " << flat << "\n";
+    uint64_t flat = WEIGHTS.TopFlat
+                    + ((ENDGAME_CUTOFF - left) * WEIGHTS.EndGameFlat / ENDGAME_CUTOFF);
 
     /* calculate the score based on the color */
     /* white has an advantage */
@@ -245,56 +279,40 @@ int64_t evaluate(const Board &board, const Weights &w, const const_bitboard &c, 
     /* scoring the naive board position */
     score += popcount(bb.white&(~(bb.caps|bb.standing))) * flat;
 	score -= popcount(bb.black&(~(bb.caps|bb.standing))) * flat;
-	score += popcount(bb.white&bb.standing) * w.Standing;
-	score -= popcount(bb.black&bb.standing) * w.Standing;
-	score += popcount(bb.white&bb.caps) * w.Capstone;
-	score -= popcount(bb.black&bb.caps) * w.Capstone;
+	score += popcount(bb.white&bb.standing) * WEIGHTS.Standing;
+	score -= popcount(bb.black&bb.standing) * WEIGHTS.Standing;
+	score += popcount(bb.white&bb.caps) * WEIGHTS.Capstone;
+	score -= popcount(bb.black&bb.caps) * WEIGHTS.Capstone;
     cerr << "naive score = " << score << "\n";
 
     /* scoring centre control */
-    score += popcount(bb.white&~c.edge) * w.Center;
-    score -= popcount(bb.black&~c.edge) * w.Center;
+    score += popcount(bb.white&~CBOARD.edge) * WEIGHTS.Center;
+    score -= popcount(bb.black&~CBOARD.edge) * WEIGHTS.Center;
     cerr << "centered score = " << score << "\n";
 
     /* scoring groups */
-    score = 0;
     vector<uint64_t> white_groups, black_groups;
-    analyze(c, bb, white_groups, black_groups);
-    print_bitmask(c.mask);
-    print_bitmask(c.L);
-    print_bitmask(c.R);
-    print_bitmask(c.B);
-    print_bitmask(c.T);
-    for(int i = 0; i < white_groups.size(); ++i) {
-        cout << "white groups " << i << "\n";
-        print_bitmask(white_groups[i]);
-    }
-    for(int i = 0; i < black_groups.size(); ++i) {
-        cout << "black groups " << i << "\n";
-        print_bitmask(black_groups[i]);
-    }
-    score += score_groups(c, white_groups, w, bb.black|bb.standing);
-	score -= score_groups(c, black_groups, w, bb.white|bb.standing);
+    analyze(CBOARD, bb, white_groups, black_groups);
+
+    score += score_groups(white_groups, bb.black|bb.standing);
+	score -= score_groups(black_groups, bb.white|bb.standing);
     cerr << "group score = " << score << "\n";
 
-    /* DEBUG */
+    // if (WEIGHTS.Liberties != 0) {
+    //     uint64_t wr = bb.white&~bb.standing;
+    //     uint64_t br = bb.black&~bb.standing;
+    //     uint64_t wl = popcount(grow(CBOARD, ~bb.black, wr) & (~bb.white));
+    //     uint64_t bl = popcount(grow(CBOARD, ~bb.white, br) & (~bb.black));
+    //     score += WEIGHTS.Liberties * wl;
+    //     score -= WEIGHTS.Liberties * bl;
+    // }
+
+    score += score_threats(bb, player_color, white_groups, black_groups);
+    cout << "score threats = " << score << "\n";
+    score += score_control(bb);
+    cout << "score control = " << score << "\n";
+
+    cout << "final abs score = " << score << "\n";
+    cout << "final neg score = " << -score << "\n";
     return score;
-
-    cout << "liberties = " << w.Liberties << "\n";
-
-    if (w.Liberties != 0) {
-        uint64_t wr = bb.white&~bb.standing;
-        uint64_t br = bb.black&~bb.standing;
-        uint64_t wl = popcount(grow(c, ~bb.black, wr) & (~bb.white));
-        uint64_t bl = popcount(grow(c, ~bb.white, br) & (~bb.black));
-        score += w.Liberties * wl;
-        score -= w.Liberties * bl;
-    }
-
-    /* BUG HERE */
-    score += score_threats(c, w, bb, player_color, white_groups, black_groups);
-    cout << "Score = " << score << "\n";
-    // score += score_control(c, w, bb);
-
-    return (player_color) ? score : -score;
 }
