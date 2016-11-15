@@ -19,6 +19,14 @@ struct Weights {
     int GroupLiberties;
     int Liberties;
 
+    int StandingCaptivesHard;
+    int StandingCaptivesSoft;
+    int CapstoneCaptivesHard;
+    int CapstoneCaptivesSoft;
+    int FlatCaptivesHard;
+    int FlatCaptivesSoft;
+
+
     int Potential;
     int Threat;
 
@@ -55,6 +63,15 @@ struct Weights {
 
         Center = 40;
         CenterControl = 10;
+
+        FlatCaptivesHard = 200;
+        FlatCaptivesSoft = -200;
+
+        StandingCaptivesHard = 300;
+        StandingCaptivesSoft = -100;
+
+        CapstoneCaptivesHard = 250;
+        CapstoneCaptivesSoft = -100;
     }
 };
 
@@ -251,9 +268,9 @@ int64_t score_control(const bitboard_t &p) {
 	uint64_t empty = CBOARD.mask &~ (p.white | p.black);
 	uint64_t flat = (p.white | p.black) &~ (p.standing | p.caps);
     int64_t s = 0;
-	s += int64(WEIGHTS.EmptyControl * (popcount(wc&empty) - popcount(bc&empty)));
-	s += int64(WEIGHTS.FlatControl * (popcount(wc&flat) - popcount(bc&flat)));
-	s += int64(WEIGHTS.CenterControl * (popcount(wc&~CBOARD.edge)- popcount(bc&~CBOARD.edge)));
+	s += (int64_t)(WEIGHTS.EmptyControl * (popcount(wc&empty) - popcount(bc&empty)));
+	s += (int64_t)(WEIGHTS.FlatControl * (popcount(wc&flat) - popcount(bc&flat)));
+	s += (int64_t)(WEIGHTS.CenterControl * (popcount(wc&~CBOARD.edge) - popcount(bc&~CBOARD.edge)));
 	return s;
 }
 
@@ -275,6 +292,40 @@ int64_t evaluate(const Board &board, bool player_color) {
     if(player_color)    score += (flat / 2) + 50;
     else                score -= (flat / 2) + 50;
     // cerr << "player score = " << score << "\n";
+
+    for(int i = 0; i < N; ++i) {
+        for(int j = 0; j < N; ++j) {
+            const int h = board.board[i][j].size();
+            if(h <= 1) continue;
+            int white_cnt = 0, black_cnt = 0;
+            for(int climber = 0; climber < h - 1; ++climber) {
+                switch (board.board[i][j][climber]) {
+                    case WHITE_FLAT:
+                    case WHITE_CRUSH: white_cnt++; break;
+                    case BLACK_FLAT:
+                    case BLACK_CRUSH: black_cnt++; break;
+                    default: assert(false);
+                }
+            }
+            const int sign = board.white(i, j) ? +1 : -1;
+            const int sf = (sign == 1) ? white_cnt : black_cnt;
+            const int hf = (sign == 1) ? black_cnt : white_cnt;
+
+            switch(board.board[i][j].back()) {
+                case WHITE_WALL:
+                case BLACK_WALL:
+                    score += sign * (hf * WEIGHTS.StandingCaptivesHard - sf * WEIGHTS.StandingCaptivesSoft);
+                    break;
+                case WHITE_CAP:
+                case BLACK_CAP:
+                    score += sign * (hf * WEIGHTS.CapstoneCaptivesHard - sf * WEIGHTS.CapstoneCaptivesHard);
+                    break;
+        		default:
+                    score += sign * (hf * WEIGHTS.FlatCaptivesHard - sf  * WEIGHTS.FlatCaptivesHard);
+                    break;
+    		}
+        }
+    }
 
     /* scoring the naive board position */
     score += popcount(bb.white&(~(bb.caps|bb.standing))) * flat;

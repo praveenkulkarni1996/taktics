@@ -4,12 +4,6 @@
 #include <cassert>
 using namespace std;
 
-typedef uint8_t int8;
-typedef uint16_t int16;
-typedef uint32_t int32;
-typedef uint64_t int64;
-
-typedef int8 Point;
 
 struct LRUD {
     int l, r, u, d;
@@ -36,7 +30,7 @@ public:
     bool game_flat_win() const;
     string board_to_string() const;
     /* for debugging purposes, they are outside */
-    vector<Stones> board[5][5];
+    vector<Stones> board[N][N];
     int white_flats_rem = 21;
     int white_caps_rem = 1;
     int black_flats_rem = 21;
