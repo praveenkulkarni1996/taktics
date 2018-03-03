@@ -4,7 +4,7 @@ Hi, I am **Taktics**, a bot for Tak, a board game invented by James Earnest and 
 
 It is traditional to give a punny name to tak bots. To discuss more about the game you can go to the [tak subreddit](http://www.reddit.com/r/Tak).
 
-![Tak](assets/tak.png)
+![Tak][tak_image]
 
 ### About the bot
 
@@ -17,4 +17,4 @@ The bot is uses MCTS and alpha-beta pruning. The bitboard design is taken from T
 This code was written as part of a [Artifical Intelligence course](http://www.cse.iitd.ac.in/~mausam/courses/col333/autumn2016/) in IIT Delhi, taught by Prof Mausam in 2016.  
 
 
-
+[tak_image]: assets/tak.png
