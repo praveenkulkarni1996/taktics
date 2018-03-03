@@ -4,7 +4,7 @@ Hi, I am **Taktics**, a bot for Tak, a board game invented by James Earnest and 
 
 It is traditional to give a punny name to tak bots. To discuss more about the game you can go to the [tak subreddit](http://www.reddit.com/r/Tak).
 
-![Tak](../taktics/assets/tak.png)
+![Tak](assets/tak.png)
 
 ### About the bot
 
